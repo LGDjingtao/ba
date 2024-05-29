@@ -1,0 +1,51 @@
+server:
+  port: 30015
+
+spring:
+  application:
+    name: sn-article-displacement
+
+  datasource:
+    driver-class-name: dm.jdbc.driver.DmDriver
+    url: jdbc:dm://192.168.1.214:30236/BA?zeroDateTimeBehavior=convertToNull&userUnicode=true&characterEncoding=UTF-8
+    username: SYSDBA
+    password: SYSDBA001
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 120
+      connection-timeout: 30000
+      minimum-idle: 10
+      idle-timeout: 500000
+      max-lifetime: 540000
+
+  jpa:
+    database-platform: org.hibernate.dialect.DmDialect
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.DmDialect
+        default_schema: BA
+        hbm2ddl:
+          auto: update
+        show_sql: false
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+mqtt:
+  hostUrl: tcp://192.168.1.214:1883
+  username: admin
+  password: public
+  inboundClientId: displacement-inbound
+  inboundGatewayTopics:
+    - /GATEWAY/NBMTWPYW1/#
+    - /GATEWAY/NBMTWPYW2/#
+  outboundClientId: displacement-outbound
+  outboundPlatformTopics:
+    - /GATEWAY/NBMTWPYW/#
+  defaultTopic: /GATEWAY/NBMTWPYW/#
+  timeout: 1000
+  keepalive: 60
+  enabled: false
