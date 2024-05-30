@@ -1,8 +1,8 @@
 package com.subsystem;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.subsystem.common.Constants;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.cache.TestCa;
 import com.subsystem.module.cache.User;
@@ -12,18 +12,13 @@ import junit.framework.TestCase;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -103,6 +98,13 @@ public class SubSystemApplicationTest extends TestCase {
         System.out.println(testCa.getUser2(2));
     }
 
+    @Test
+    public void cache22Test() throws InterruptedException {
+        //device_report_A006B100PFDS014
+        Object synchronizeRedisCacheValue = caffeineCacheModule.getSynchronizeRedisCacheValue("device_report_A006B100PFDS014");
+        System.out.println(synchronizeRedisCacheValue);
+    }
+
 
     /**
      * StringRedisTemplate 常用 get set 测试
@@ -128,7 +130,7 @@ public class SubSystemApplicationTest extends TestCase {
                 .limit(modelKeys.size())
                 .collect(Collectors.toMap(modelKeys::get, filterData::get));
 
-        LoadingCache cache = caffeineCacheModule.getLoadingCache(Constants.SYNCHRONIZE_REDIS);
+        LoadingCache cache = caffeineCacheModule.getLoadingCache(Constants.SYN_REDIS);
         cache.putAll(result);
         System.out.println("asdas");
     }

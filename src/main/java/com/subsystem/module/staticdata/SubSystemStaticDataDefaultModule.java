@@ -1,6 +1,6 @@
 package com.subsystem.module.staticdata;
 
-import com.subsystem.Constants;
+import com.subsystem.common.Constants;
 import com.subsystem.module.init.staticdata.SubSystemStaticDataInitDefaultModule;
 import com.subsystem.repository.mapping.DeviceInfo;
 import lombok.AllArgsConstructor;
@@ -26,8 +26,21 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
      * @param tripartiteCode 三方标识
      * @return 设备code
      */
+    @Override
     public String getDeviceCodeByTripartiteCode(String tripartiteCode) {
         return deviceInfoBytripartiteCode.get(tripartiteCode).getDeviceCode();
+    }
+
+    /**
+     * 获取设备物模型存redis的key，通过三方标识
+     *
+     * @param tripartiteCode 三方标识
+     * @return redis key
+     */
+    @Override
+    public String getDeviceCodeRedisKeyByTripartiteCode(String tripartiteCode) {
+        return Constants.PREFIX_FOR_OBJECT_MODEL_KEY + getDeviceCodeByTripartiteCode(tripartiteCode);
+
     }
 
     /**
@@ -36,6 +49,7 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
      * @param deviceCode 设备code
      * @return 设备code
      */
+    @Override
     public String getTripartiteCodeByDeviceCode(String deviceCode) {
         return deviceInfoByCode.get(deviceCode).getDeviceTripartiteCode();
     }
@@ -43,6 +57,7 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
     /**
      * 获取所有三方标识
      */
+    @Override
     public List<String> getAllTripartiteCode() {
         return allDeviceInfo.stream().map(DeviceInfo::getDeviceTripartiteCode).collect(Collectors.toList());
     }
@@ -50,6 +65,7 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
     /**
      * 获取所有设备编码（资产编码）
      */
+    @Override
     public List<String> getAllDeviceCode() {
         return allDeviceInfo.stream().map(DeviceInfo::getDeviceCode).collect(Collectors.toList());
     }
@@ -57,6 +73,7 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
     /**
      * 获取所有设备物模型的key
      */
+    @Override
     public List<String> getAllModelKeys() {
         return getAllDeviceCode().stream().map(v -> Constants.PREFIX_FOR_OBJECT_MODEL_KEY + v).collect(Collectors.toList());
     }

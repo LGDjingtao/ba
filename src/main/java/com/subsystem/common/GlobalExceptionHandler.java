@@ -1,4 +1,4 @@
-package com.subsystem;
+package com.subsystem.common;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;

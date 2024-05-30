@@ -1,7 +1,7 @@
 package com.subsystem.module.cache;
 
 
-import com.subsystem.Constants;
+import com.subsystem.common.Constants;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ public class TestCa {
         return new User(222, 222, "tao222");
     }
 
-    @Cacheable( cacheNames = Constants.SYNCHRONIZE_REDIS,key = "#id", sync = true)
+    @Cacheable( cacheNames = Constants.SYN_REDIS,key = "#id", sync = true)
     public User getUser2(int id) {
         //TODO 查找数据库
         return new User(222, 222, "tao222");
@@ -34,7 +34,7 @@ public class TestCa {
      *
      * @param user
      */
-    @CachePut( cacheNames = Constants.SYNCHRONIZE_REDIS, key = "#result.id")
+    @CachePut( cacheNames = Constants.SYN_REDIS, key = "#result.id")
     public User saveUser2(User user) {
         return new User(2, 2, "tao2");
     }

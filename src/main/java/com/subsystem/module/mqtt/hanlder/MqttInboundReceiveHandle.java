@@ -22,7 +22,11 @@ public class MqttInboundReceiveHandle implements MessageHandler {
     @ServiceActivator(inputChannel = "inBoundChannel")
     public void handleMessage(Message<?> message) throws MessagingException {
         //将消息转发给子系统业务组装模块
-        subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
+        try {
+            subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
+        } catch (Exception e) {
+            log.error("消息处理失败",e);
+        }
     }
 
 }

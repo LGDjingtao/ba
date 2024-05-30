@@ -1,9 +1,9 @@
 package com.subsystem.module.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.subsystem.Constants;
+import com.subsystem.common.Constants;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCache;
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Configuration
 @EnableCaching
 @AllArgsConstructor
@@ -59,18 +60,33 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
         List<CaffeineCache> list = new ArrayList<>();
-        list.add(new CaffeineCache(Constants.SYNCHRONIZE_REDIS,
+        list.add(new CaffeineCache(Constants.SYN_REDIS,
                 Caffeine.newBuilder()
-                        .initialCapacity(50)
-                        .maximumSize(1000)
-                        .expireAfterWrite(3, TimeUnit.SECONDS)
-                        .build(loadCache-> loadCache)));
+                        .initialCapacity(2000)
+                        .maximumSize(10000)
+                        //暂时先不失效
+                        //.expireAfterWrite(3, TimeUnit.SECONDS)
+                        /**
+                         *  todo (loadCache-> loadCache) 失效策略，后面按需求写获取逻辑
+                         */
+                        .build(loadCache -> loadCache)));
         list.add(new CaffeineCache(Constants.LOCAL,
                 Caffeine.newBuilder()
                         .initialCapacity(50)
-                        .maximumSize(1000)
-                        .expireAfterAccess(5, TimeUnit.SECONDS)
-                        .build(loadCache-> loadCache)));
+                        .maximumSize(10000)
+                        //.expireAfterAccess(Constants.EXPIRES_15_DAYS, TimeUnit.SECONDS)
+                        .expireAfterWrite(2, TimeUnit.SECONDS)
+                        //缓存失效通知
+                        .removalListener((key, value, cause) -> {
+                            //todo 清理通知 key,value ==> 键值对   cause ==> 清理原因
+                            //todo 通过事件通知 告警服务去告警
+                        })
+                        .build()));
+        list.add(new CaffeineCache(Constants.SYN_REDIS_FAILED,
+                Caffeine.newBuilder()
+                        .initialCapacity(20)
+                        .maximumSize(10000)
+                        .build()));
         cacheManager.setCaches(list);
         return cacheManager;
     }
