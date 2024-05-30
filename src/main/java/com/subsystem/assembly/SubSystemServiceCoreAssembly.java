@@ -8,7 +8,10 @@ import com.subsystem.entity.MqttPayload;
 import com.subsystem.module.staticdata.SubSystemStaticDataModule;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 

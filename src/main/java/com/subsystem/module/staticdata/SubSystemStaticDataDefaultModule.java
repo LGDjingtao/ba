@@ -1,8 +1,13 @@
 package com.subsystem.module.staticdata;
 
+import com.subsystem.Constants;
 import com.subsystem.module.init.staticdata.SubSystemStaticDataInitDefaultModule;
+import com.subsystem.repository.mapping.DeviceInfo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 子系统静态数据组件
@@ -33,6 +38,27 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
      */
     public String getTripartiteCodeByDeviceCode(String deviceCode) {
         return deviceInfoByCode.get(deviceCode).getDeviceTripartiteCode();
+    }
+
+    /**
+     * 获取所有三方标识
+     */
+    public List<String> getAllTripartiteCode() {
+        return allDeviceInfo.stream().map(DeviceInfo::getDeviceTripartiteCode).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取所有设备编码（资产编码）
+     */
+    public List<String> getAllDeviceCode() {
+        return allDeviceInfo.stream().map(DeviceInfo::getDeviceCode).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取所有设备物模型的key
+     */
+    public List<String> getAllModelKeys() {
+        return getAllDeviceCode().stream().map(v -> Constants.PREFIX_FOR_OBJECT_MODEL_KEY + v).collect(Collectors.toList());
     }
 
     /**

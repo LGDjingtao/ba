@@ -1,5 +1,6 @@
 package com.subsystem.module.init.staticdata;
 
+import com.subsystem.module.init.InitModule;
 import com.subsystem.repository.DeviceInfoRepository;
 import com.subsystem.repository.mapping.DeviceInfo;
 import com.subsystem.module.staticdata.SubSystemStaticData;
@@ -16,8 +17,8 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 @Slf4j
-public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData implements SubSystemStaticDataInitModule {
-    public DeviceInfoRepository deviceInfoRepository;
+public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData implements InitModule {
+    DeviceInfoRepository deviceInfoRepository;
 
     @Override
     @PostConstruct

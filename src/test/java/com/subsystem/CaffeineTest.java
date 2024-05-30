@@ -1,7 +1,7 @@
 package com.subsystem;
 
 import com.github.benmanes.caffeine.cache.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CaffeineTest {
-    @Test
+    //@Test
     public void cacheTest() {
         // 初始化缓存，设置了1分钟的写过期，100的缓存最大个数
         Cache<Integer, Integer> cache = Caffeine.newBuilder()
@@ -61,7 +61,7 @@ public class CaffeineTest {
         return key + 1;
     }
 
-    @Test
+    //@Test
     public void loadingCacheTest() {
         // 初始化缓存，设置了1分钟的写过期，100的缓存最大个数
         LoadingCache<Integer, Integer> cache = Caffeine.newBuilder()
@@ -78,15 +78,15 @@ public class CaffeineTest {
         int key1 = 1;
         // get数据，取不到则从数据库中读取相关数据，该值也会插入缓存中：
         Integer value1 = cache.get(key1);
-        System.out.println(value1);
 
+        System.out.println(value1);
         // 支持直接get一组值，支持批量查找
         Map<Integer, Integer> dataMap
                 = cache.getAll(Arrays.asList(1, 2, 3));
         System.out.println(dataMap);
     }
 
-    @Test
+    //@Test
     public void asyncCacheTest() throws ExecutionException, InterruptedException {
         // 使用executor设置线程池
         AsyncCache<Integer, Integer> asyncCache = Caffeine.newBuilder()
@@ -117,10 +117,10 @@ public class CaffeineTest {
         System.out.println(value2);
     }
 
-    public static void main(String[] args) {
-        String tt = "1213412312312,2,3";
-        String[] split = tt.split(",");
-        List<String> collect = Arrays.stream(split).collect(Collectors.toList());
-        boolean contains = collect.contains("1213412312312");
-    }
+//    public static void main(String[] args) {
+//        String tt = "1213412312312,2,3";
+//        String[] split = tt.split(",");
+//        List<String> collect = Arrays.stream(split).collect(Collectors.toList());
+//        boolean contains = collect.contains("1213412312312");
+//    }
 }

@@ -4,7 +4,34 @@ server:
 spring:
   application:
     name: sn-article-displacement
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://192.168.29.128:3306/ba?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+#    username: root
+#    password: user*2023
+#    type: com.zaxxer.hikari.HikariDataSource
+#    hikari:
+#      maximum-pool-size: 120
+#      connection-timeout: 30000
+#      minimum-idle: 10
+#      idle-timeout: 500000
+#      max-lifetime: 540000
 
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+  redis:
+    database: 1
+    host: 192.168.1.214
+    port: 6379
+    password:
+    timeout: 6000ms
+    jedis:
+      pool:
+        max-active: 1000
+        max-wait: -1ms
+        max-idle: 10
+        min-idle: 5
   datasource:
     driver-class-name: dm.jdbc.driver.DmDriver
     url: jdbc:dm://192.168.1.214:30236/BA?zeroDateTimeBehavior=convertToNull&userUnicode=true&characterEncoding=UTF-8
