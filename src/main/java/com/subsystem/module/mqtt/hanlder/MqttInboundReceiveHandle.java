@@ -1,6 +1,6 @@
 package com.subsystem.module.mqtt.hanlder;
 
-import com.subsystem.assembly.SubSystemServiceCoreAssembly;
+import com.subsystem.SubSystemServiceCoreAssembly;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -25,7 +25,7 @@ public class MqttInboundReceiveHandle implements MessageHandler {
         try {
             subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
         } catch (Exception e) {
-            log.error("消息处理失败",e);
+            log.error("消息处理失败", e);
         }
     }
 

@@ -115,12 +115,14 @@ public class CaffeineTest {
         System.out.println("当前所在线程：" + Thread.currentThread().getName());
         System.out.println(value);
         System.out.println(value2);
+
     }
 
-//    public static void main(String[] args) {
-//        String tt = "1213412312312,2,3";
-//        String[] split = tt.split(",");
-//        List<String> collect = Arrays.stream(split).collect(Collectors.toList());
-//        boolean contains = collect.contains("1213412312312");
-//    }
+    public static void main(String[] args) {
+        String tt = "1213412312312,2,3";
+        String[] split = tt.split(",");
+        List<String> collect = Arrays.stream(split).collect(Collectors.toList());
+        boolean contains = collect.contains("1213412312312");
+
+    }
 }

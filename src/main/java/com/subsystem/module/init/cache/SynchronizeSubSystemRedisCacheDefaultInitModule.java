@@ -54,7 +54,7 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
         Map<String, Object> result = Stream.iterate(0, n -> n + 1)
                 .limit(modelKeys.size())
                 .collect(Collectors.toMap(modelKeys::get, filterData::get));
-        LoadingCache cache = caffeineCacheModule.getLoadingCache(Constants.SYN_REDIS);
+        LoadingCache cache = caffeineCacheModule.getSynRedisCache();
         cache.putAll(result);
     }
 

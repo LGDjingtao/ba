@@ -1,17 +1,21 @@
 package com.subsystem.module.cache;
 
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.common.Constants;
+import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.repository.RepositoryModule;
 import com.subsystem.repository.SyncFailedDataRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -28,8 +32,8 @@ public class CaffeineCacheModule {
      * 根据缓存类型获取对应的缓存
      * 这里根据业务需要 获取LoadingCache，因为这个缓存实现了 批量存入操作
      */
-    public LoadingCache getLoadingCache(String cacheType) {
-        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(cacheType);
+    public LoadingCache getSynRedisCache() {
+        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.SYN_REDIS);
         return (LoadingCache) cache.getNativeCache();
     }
 
@@ -51,8 +55,6 @@ public class CaffeineCacheModule {
     @CachePut(cacheNames = Constants.SYN_REDIS, key = "#key")
     public String setSynchronizeRedisCacheValue(String key, String realTimeData) {
         synRealTimeDataToDataBase(key, realTimeData);
-        synRedis(key, realTimeData);
-
         return realTimeData;
     }
 
@@ -64,7 +66,7 @@ public class CaffeineCacheModule {
      */
     private void synRealTimeDataToDataBase(String key, String realTimeData) {
         //查询 key 是否有同步失败的缓存里面
-        String synRedisFailedCache = (String) caffeineCacheModule.getSynRedisFailedCache(key);
+        String synRedisFailedCache = (String) caffeineCacheModule.getSynRedisFailedCacheValue(key);
         //如果不在缓存里面 就不做处理
         if (Constants.EMPTY_JSON_OBJ.equals(synRedisFailedCache)) return;
         //在缓存里面 就更新最新的数据到数据库
@@ -72,18 +74,23 @@ public class CaffeineCacheModule {
     }
 
     /**
-     * 同步数据到redis
+     * redis同步事件
      *
-     * @param key          物模型数据key
-     * @param realTimeData 实时物模型数据
+     * @param synRedisEvent redis同步事件
      */
-    private void synRedis(String key, String realTimeData) {
+    @EventListener(classes = SynRedisEvent.class)
+    public void synRedisEventListener(SynRedisEvent synRedisEvent) {
+        String key = synRedisEvent.getKey();
+        String realTimeData = caffeineCacheModule.getSynchronizeRedisCacheValue(key);
         try {
             redisModule.set(key, realTimeData);
         } catch (Exception e) {
             log.error("同步到redis失败\n设备:{}\n数据:{}\n", key, realTimeData, e);
             redisExceptionHandle(key, realTimeData);
+            return;
         }
+        //同步成功 后 删除mysql和缓存
+        setSynRedisFailedCacheValue(key);
     }
 
     /**
@@ -120,11 +127,20 @@ public class CaffeineCacheModule {
         return key;
     }
 
+
+    /**
+     * 通过key 获取 同步失败缓存
+     */
+    public Cache<Object, Object> getSynRedisFailedCache() {
+        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.SYN_REDIS);
+        return cache.getNativeCache();
+    }
+
     /**
      * 通过key 获取 同步失败缓存
      */
     @Cacheable(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key")
-    public Object getSynRedisFailedCache(String key) {
+    public Object getSynRedisFailedCacheValue(String key) {
         return Constants.EMPTY_JSON_OBJ;
     }
 
@@ -135,7 +151,17 @@ public class CaffeineCacheModule {
      * @param realTimeData 实时物模型数据
      */
     @CachePut(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key")
-    public String setSynRedisFailedCache(String key, String realTimeData) {
+    public String setSynRedisFailedCacheValue(String key, String realTimeData) {
         return realTimeData;
+    }
+
+    /**
+     * 删除缓存
+     *
+     * @param key 物模型数据数据key
+     */
+    @CacheEvict(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key")
+    public void setSynRedisFailedCacheValue(String key) {
+        repositoryModule.deleteSyncFailedDataByKey(key);
     }
 }

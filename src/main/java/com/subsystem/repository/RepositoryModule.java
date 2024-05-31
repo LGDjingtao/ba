@@ -35,7 +35,7 @@ public class RepositoryModule {
             return syncFailedData;
         }
         //落库成功后才更新缓存 落库失败更新缓存没意义
-        caffeineCacheModule.setSynRedisFailedCache(key, realTimeData);
+        caffeineCacheModule.setSynRedisFailedCacheValue(key, realTimeData);
         return syncFailedData;
     }
 

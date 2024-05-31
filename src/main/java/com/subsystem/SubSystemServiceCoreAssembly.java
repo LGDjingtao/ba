@@ -1,24 +1,25 @@
-package com.subsystem.assembly;
+package com.subsystem;
 
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.subsystem.common.Constants;
 import com.subsystem.common.SpecialFieldsEnum;
 import com.subsystem.entity.Metric;
 import com.subsystem.entity.MqttPayload;
+import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.cache.CaffeineCacheModule;
+import com.subsystem.event.EventCollection;
 import com.subsystem.module.cleaning.DataCleaningModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataModule;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -35,12 +36,16 @@ public class SubSystemServiceCoreAssembly {
     CaffeineCacheModule caffeineCacheModule;
     //数据清洗模块
     DataCleaningModule dataCleaningModule;
+    //事件驱动模块
+    ApplicationContext eventDrivenModule;
 
     //业务组装入口
     public void serviceAssemblyEntrance(Message<?> message) throws Exception {
-
         //获取三方标识
         String tripartiteCode = getTripartiteCodeByMessage(message);
+
+        //获取缓存key
+        String key = getKey(tripartiteCode);
 
         //新数据刷新本地缓存 目的是为了刷新设备信息过期时间 用来感知设备是否离线
         caffeineCacheModule.setLocalCache(tripartiteCode);
@@ -49,8 +54,33 @@ public class SubSystemServiceCoreAssembly {
         Metric metric = dataConversion(message);
 
         //数据清洗
-        dataCleaningModule.dataCleaning(metric, tripartiteCode);
+        EventCollection eventCollection = dataCleaningModule.dataCleaning(metric, key);
 
+        // 用前面步骤整理好的数据来 数据上报
+        dataReporting(eventCollection);
+    }
+
+    //数据上报
+    private void dataReporting(EventCollection eventCollection) {
+        //上报物模型
+        Optional.ofNullable(eventCollection.getSynRedisEvent()).ifPresent(SynRedisEvent -> eventDrivenModule.publishEvent(SynRedisEvent));
+        //推送告/消警
+        Optional.ofNullable(eventCollection.getAlarmEvent()).ifPresent(AlarmEvent -> eventDrivenModule.publishEvent(AlarmEvent));
+    }
+
+
+    /**
+     * @param tripartiteCode 三方标识
+     * @return 缓存key
+     * @throws Exception
+     */
+    private String getKey(String tripartiteCode) throws Exception {
+        String key = subSystemStaticDataModule.getDeviceCodeRedisKeyByTripartiteCode(tripartiteCode);
+        Optional.ofNullable(key).orElseThrow(() -> {
+            log.error("传入的三方标识:{}获取不到缓存key", tripartiteCode);
+            return new Exception("获取不到缓存key");
+        });
+        return key;
     }
 
     /**
@@ -69,8 +99,6 @@ public class SubSystemServiceCoreAssembly {
     /**
      * 特殊数据转换 对于在线离线，故障，告警 推送值兼容
      * false->"0" true->"1"
-     *
-     * @param metric
      */
     private static void specialFieldsConversion(Metric metric) {
         String alias = metric.getAlias();
