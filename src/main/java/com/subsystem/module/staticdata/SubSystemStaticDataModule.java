@@ -13,7 +13,7 @@ public interface SubSystemStaticDataModule {
      * @param tripartiteCode 三方标识
      * @return 设备code
      */
-    String getDeviceCodeByTripartiteCode(String tripartiteCode);
+    String getDeviceCodeByTripartiteCode(String tripartiteCode) throws Exception;
 
 
 
@@ -23,7 +23,7 @@ public interface SubSystemStaticDataModule {
      * @param tripartiteCode 三方标识
      * @return redis key
      */
-    String getDeviceCodeRedisKeyByTripartiteCode(String tripartiteCode);
+    String getDeviceCodeRedisKeyByTripartiteCode(String tripartiteCode) throws Exception;
 
     /**
      * 获取三方标识，通过设备code

@@ -2,9 +2,13 @@ package com.subsystem.module.cleaning;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.subsystem.common.Constants;
 import com.subsystem.entity.Metric;
+import com.subsystem.entity.RealTimeData;
+import com.subsystem.event.AlarmEvent;
 import com.subsystem.event.EventCollection;
 import com.subsystem.event.SynRedisEvent;
+import com.subsystem.module.alarm.AlarmModule;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataModule;
 import lombok.AllArgsConstructor;
@@ -23,23 +27,35 @@ public class DataCleaningModule {
     SubSystemStaticDataModule subSystemStaticDataModule;
     //缓存模块
     CaffeineCacheModule caffeineCacheModule;
+    //告警模块
+    AlarmModule alarmModule;
 
-    public EventCollection dataCleaning(Metric metric, String key) {
-        EventCollection eventCollection = new EventCollection();
+    /**
+     *
+     * @param metric 新的mqtt消息
+     * @param tripartiteCode 三方标识
+     * @return 合并后的最新数据
+     */
+    public RealTimeData dataCleaning(Metric metric, String tripartiteCode) throws Exception {
+        String deviceCode = subSystemStaticDataModule.getDeviceCodeByTripartiteCode(tripartiteCode);
+        //获取缓存key
+        String key = getKey(deviceCode);
         //查询同步缓存
         String targetCacheData = caffeineCacheModule.getSynchronizeRedisCacheValue(key);
         //比对缓存 相同数据不进行业务处理
-        if (caCheComparison(metric, targetCacheData)) return eventCollection;
+        if (caCheComparison(metric, targetCacheData)) return null;
         //合并 数据
-        String realTimeData = mergeData(metric, targetCacheData);
-        //修改同步缓存
-        caffeineCacheModule.setSynchronizeRedisCacheValue(key, realTimeData);
+        String realTimeDataStr = mergeData(metric, targetCacheData);
         //创建同步事件
-        SynRedisEvent synRedisEvent = new SynRedisEvent(null, key);
-        eventCollection.setSynRedisEvent(synRedisEvent);
-
-
-        return eventCollection;
+        RealTimeData realTimeData = new RealTimeData();
+        realTimeData.setKey(key);
+        realTimeData.setRealTimeData(realTimeDataStr);
+        realTimeData.setDeviceCode(deviceCode);
+        realTimeData.setTripartiteCode(tripartiteCode);
+        realTimeData.setAlias(metric.getAlias());
+        realTimeData.setValue(metric.getValue());
+        realTimeData.setTimestamp(metric.getTimestamp());
+        return realTimeData;
     }
 
     /**
@@ -70,5 +86,14 @@ public class DataCleaningModule {
             return ObjectUtils.nullSafeEquals(cacheObj, outObj);
         }
         return false;
+    }
+
+    /**
+     * @param deviceCode 设备code
+     * @return 缓存key
+     * @throws Exception
+     */
+    private String getKey(String deviceCode) {
+        return Constants.PREFIX_FOR_OBJECT_MODEL_KEY + deviceCode;
     }
 }

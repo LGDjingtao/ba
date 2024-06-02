@@ -1,6 +1,7 @@
 package com.subsystem.module.init.staticdata;
 
 import com.subsystem.module.init.InitModule;
+import com.subsystem.repository.DeviceAlarmTypeRepository;
 import com.subsystem.repository.DeviceInfoRepository;
 import com.subsystem.repository.mapping.DeviceInfo;
 import com.subsystem.module.staticdata.SubSystemStaticData;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.stream.Collectors;
 
+import com.subsystem.repository.mapping.DeviceAlarmType;
+
 /**
  * 子系统静态数据初始化逻辑组件
  */
@@ -19,11 +22,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData implements InitModule {
     DeviceInfoRepository deviceInfoRepository;
+    DeviceAlarmTypeRepository deviceAlarmTypeRepository;
 
     @Override
     @PostConstruct
     public void init() {
         initDeviceInfo();
+        initDeviceAlarmType();
     }
 
     /**
@@ -37,5 +42,13 @@ public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData im
         this.deviceInfoBytripartiteCode = this.allDeviceInfo.stream().collect(Collectors.toMap(DeviceInfo::getDeviceTripartiteCode, deviceInfo -> deviceInfo));
         this.deviceInfoByTypeCode = this.allDeviceInfo.stream().collect(Collectors.groupingBy(DeviceInfo::getDeviceTypeCode));
         log.info("######### end 初始化设备信息");
+    }
+
+    /**
+     * 初始化设备告警类型
+     */
+    private void initDeviceAlarmType() {
+        this.allDeviceAlarmType = deviceAlarmTypeRepository.findAll();
+        this.deviceAlarmTypeByType = this.allDeviceAlarmType.stream().collect(Collectors.groupingBy(DeviceAlarmType::getDeviceType));
     }
 }

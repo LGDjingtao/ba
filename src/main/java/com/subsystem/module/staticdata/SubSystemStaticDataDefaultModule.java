@@ -2,11 +2,14 @@ package com.subsystem.module.staticdata;
 
 import com.subsystem.common.Constants;
 import com.subsystem.module.init.staticdata.SubSystemStaticDataInitDefaultModule;
+import com.subsystem.repository.mapping.DeviceAlarmType;
 import com.subsystem.repository.mapping.DeviceInfo;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -14,6 +17,7 @@ import java.util.stream.Collectors;
  * 里面封装各种获取子系统静态数据的方法
  * 外部组件或者接口 获取静态数据 都从这个组件的方法里面获取
  */
+@Slf4j
 @Component
 @AllArgsConstructor
 public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implements SubSystemStaticDataModule {
@@ -27,8 +31,13 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
      * @return 设备code
      */
     @Override
-    public String getDeviceCodeByTripartiteCode(String tripartiteCode) {
-        return deviceInfoBytripartiteCode.get(tripartiteCode).getDeviceCode();
+    public String getDeviceCodeByTripartiteCode(String tripartiteCode) throws Exception {
+        DeviceInfo deviceInfo = deviceInfoBytripartiteCode.get(tripartiteCode);
+        Optional.ofNullable(deviceInfo).orElseThrow(() -> {
+            log.error("传入的三方标识:{}获取不到缓存key", tripartiteCode);
+            return new Exception("获取不到缓存key");
+        });
+        return deviceInfo.getDeviceCode();
     }
 
     /**
@@ -38,10 +47,12 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
      * @return redis key
      */
     @Override
-    public String getDeviceCodeRedisKeyByTripartiteCode(String tripartiteCode) {
-        return Constants.PREFIX_FOR_OBJECT_MODEL_KEY + getDeviceCodeByTripartiteCode(tripartiteCode);
+    public String getDeviceCodeRedisKeyByTripartiteCode(String tripartiteCode) throws Exception {
+        String deviceCodeByTripartiteCode = getDeviceCodeByTripartiteCode(tripartiteCode);
+        return Constants.PREFIX_FOR_OBJECT_MODEL_KEY + deviceCodeByTripartiteCode;
 
     }
+
 
     /**
      * 获取三方标识，通过设备code
@@ -84,5 +95,16 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
     @Override
     public void updateSubSystemStaticData() {
         subSystemStaticDataInitDefaultModule.init();
+    }
+
+    /**
+     *  通过设备code 获取改设备的所有告警类型
+     * @param deviceCode 设备code
+     * @return 告警类型数据
+     */
+    public List<DeviceAlarmType> getDeviceTypeCodeByDeviceCode(String deviceCode) {
+        DeviceInfo deviceInfo = deviceInfoByCode.get(deviceCode);
+        String deviceTypeCode = deviceInfo.getDeviceTypeCode();
+        return deviceAlarmTypeByType.get(deviceTypeCode);
     }
 }

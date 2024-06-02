@@ -4,11 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.common.Constants;
 import com.subsystem.module.cache.CaffeineCacheModule;
-import com.subsystem.module.cache.TestCa;
-import com.subsystem.module.cache.User;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
 import junit.framework.TestCase;
+
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+
 
 /**
  * Unit test for simple App.
@@ -133,5 +134,34 @@ public class SubSystemApplicationTest extends TestCase {
         LoadingCache cache = caffeineCacheModule.getSynRedisCache();
         cache.putAll(result);
         System.out.println("asdas");
+    }
+
+    @Test
+    public void redisPipelinedTest222() {
+        testCa.saveGangzi(new User(2,19,"gangzi"));
+        User laona = testCa.getLaona(1);
+    }
+
+    @Test
+    void test_cacheValid() {
+        User user = new User();
+        int id = 1;
+        user.setId(id);
+        user.setName("laona");
+        user.setAge(20);
+
+        testCa.saveLaona(user);
+
+        User target = testCa.getUser(id);
+
+//        Assert.assertNotNull(target);
+//        Assert.assertEquals(user.getName(), target.getName());
+
+    }
+
+    @Test
+    void test_cacheValid() {
+
+
     }
 }

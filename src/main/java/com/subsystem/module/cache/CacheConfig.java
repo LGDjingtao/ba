@@ -75,7 +75,7 @@ public class CacheConfig {
                         .initialCapacity(50)
                         .maximumSize(10000)
                         //.expireAfterAccess(Constants.EXPIRES_15_DAYS, TimeUnit.SECONDS)
-                        .expireAfterWrite(2, TimeUnit.SECONDS)
+                        .expireAfterWrite(20000, TimeUnit.SECONDS)
                         //缓存失效通知
                         .removalListener((key, value, cause) -> {
                             //todo 清理通知 key,value ==> 键值对   cause ==> 清理原因

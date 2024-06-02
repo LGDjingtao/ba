@@ -2,6 +2,7 @@ package com.subsystem.module.task;
 
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.subsystem.entity.RealTimeData;
 import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class SynRedisFailedTask extends ScheduleTask {
     CaffeineCacheModule caffeineCacheModule;
     //事件驱动模块
     ApplicationContext eventDrivenModule;
+
     @Scheduled(cron = "0 0/1 * * * ? ")
     @Override
     public void run() {
@@ -28,13 +30,16 @@ public class SynRedisFailedTask extends ScheduleTask {
         ConcurrentMap<@NonNull Object, @NonNull Object> map = synRedisFailedCache.asMap();
         if (map.isEmpty()) return;
         map.entrySet().stream().forEach(this::publishEvent);
-
     }
 
-    public void publishEvent(Map.Entry<Object, Object> entry){
-        SynRedisEvent synRedisEvent = new SynRedisEvent(null,(String)entry.getKey());
+    public void publishEvent(Map.Entry<Object, Object> entry) {
+        String key = (String) entry.getKey();
+        String realTimeDataStr = (String) entry.getValue();
+        RealTimeData realTimeData = new RealTimeData();
+        realTimeData.setKey(key);
+        realTimeData.setRealTimeData(realTimeDataStr);
+        SynRedisEvent synRedisEvent = new SynRedisEvent(this, realTimeData);
         eventDrivenModule.publishEvent(synRedisEvent);
     }
-
 
 }

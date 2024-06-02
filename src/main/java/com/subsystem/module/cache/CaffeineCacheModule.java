@@ -7,25 +7,32 @@ import com.subsystem.common.Constants;
 import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.repository.RepositoryModule;
-import com.subsystem.repository.SyncFailedDataRepository;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+import javax.annotation.Resource;
+import java.util.Optional;
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class CaffeineCacheModule {
+
+    @Resource
     CacheManager cacheManager;
+    @Resource
     StringRedisModule redisModule;
-    SyncFailedDataRepository syncFailedDataRepository;
+    @Lazy
+    @Resource
     CaffeineCacheModule caffeineCacheModule;
+    @Resource
     RepositoryModule repositoryModule;
 
     /**
@@ -53,24 +60,34 @@ public class CaffeineCacheModule {
      * 更新同步失败缓存
      */
     @CachePut(cacheNames = Constants.SYN_REDIS, key = "#key")
-    public String setSynchronizeRedisCacheValue(String key, String realTimeData) {
-        synRealTimeDataToDataBase(key, realTimeData);
+    public String setSynchronizeRedisCacheValue(String key, String realTimeData) throws Exception {
+        synExceptionData(key, realTimeData);
+        try {
+            double random = Math.random();
+            if (random > 0.5) throw new Exception("测试");
+            redisModule.set(key, realTimeData);
+        } catch (Exception e) {
+            log.error("同步到redis失败\n设备:{}\n数据:{}\n", key, realTimeData, e);
+            saveExceptionData(key, realTimeData);
+        }
+        //同步成功 后 删除mysql和缓存
+        setSynRedisFailedCacheValue(key);
         return realTimeData;
     }
 
     /**
-     * 同步最新的数据到数据库
+     * 同步最新的异常数据到数据库
      *
      * @param key          物模型数据key
      * @param realTimeData 实时物模型数据
      */
-    private void synRealTimeDataToDataBase(String key, String realTimeData) {
-        //查询 key 是否有同步失败的缓存里面
+    private void synExceptionData(String key, String realTimeData) throws Exception {
+        //查询 key 是否是异常数据
         String synRedisFailedCache = (String) caffeineCacheModule.getSynRedisFailedCacheValue(key);
         //如果不在缓存里面 就不做处理
         if (Constants.EMPTY_JSON_OBJ.equals(synRedisFailedCache)) return;
-        //在缓存里面 就更新最新的数据到数据库
-        repositoryModule.saveSyncFailedData(key, realTimeData);
+        //在异常缓存里面 就更新最新的异常数据到数据库
+        saveExceptionData(key, realTimeData);
     }
 
     /**
@@ -81,33 +98,27 @@ public class CaffeineCacheModule {
     @EventListener(classes = SynRedisEvent.class)
     public void synRedisEventListener(SynRedisEvent synRedisEvent) {
         String key = synRedisEvent.getKey();
-        String realTimeData = caffeineCacheModule.getSynchronizeRedisCacheValue(key);
+        String realTimeData = synRedisEvent.getRealTimeData();
+        //修改同步缓存
         try {
-            redisModule.set(key, realTimeData);
+            caffeineCacheModule.setSynchronizeRedisCacheValue(key, realTimeData);
         } catch (Exception e) {
-            log.error("同步到redis失败\n设备:{}\n数据:{}\n", key, realTimeData, e);
-            redisExceptionHandle(key, realTimeData);
-            return;
+            log.error("redis同步事件失败\nkey:{}\nvalue:{}\n", key, realTimeData, e);
         }
-        //同步成功 后 删除mysql和缓存
-        setSynRedisFailedCacheValue(key);
+
     }
 
     /**
-     * 同步redis时出现异常的处理
+     * 保存和更新异常数据
      *
      * @param key          物模型数据key
      * @param realTimeData 实时物模型数据
      */
-    private void redisExceptionHandle(String key, String realTimeData) {
-        /**
-         * 这个时候将出现本地和redis数据不一致情况
-         * 但是我们保证本地缓存一定是最新的  方便后续告警业务正常进行 不会因为redis通信异常而不去告警
-         * 再把同步失败的设备key存入mysql
-         */
-        //失败数据落库
+    private void saveExceptionData(String key, String realTimeData) throws Exception {
+        //异常数据落库
         repositoryModule.saveSyncFailedData(key, realTimeData);
-
+        //落库成功后才更新缓存 保证数据一致性 落库失败更新缓存没意义
+        caffeineCacheModule.setSynRedisFailedCacheValue(key, realTimeData);
     }
 
     /**
@@ -132,7 +143,7 @@ public class CaffeineCacheModule {
      * 通过key 获取 同步失败缓存
      */
     public Cache<Object, Object> getSynRedisFailedCache() {
-        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.SYN_REDIS);
+        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.SYN_REDIS_FAILED);
         return cache.getNativeCache();
     }
 
@@ -160,8 +171,10 @@ public class CaffeineCacheModule {
      *
      * @param key 物模型数据数据key
      */
-    @CacheEvict(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key")
+    @CacheEvict(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key", condition = "#key")
     public void setSynRedisFailedCacheValue(String key) {
+        String synRedisFailedCacheValue = (String) caffeineCacheModule.getSynRedisFailedCacheValue(key);
+        if (Constants.EMPTY_JSON_OBJ.equals(synRedisFailedCacheValue)) return;
         repositoryModule.deleteSyncFailedDataByKey(key);
     }
 }

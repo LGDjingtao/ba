@@ -34,12 +34,20 @@ public class Constants {
     /**
      * ############################ redis ##################################
      */
-
+    //特殊数据
     public static final String EMPTY_JSON_OBJ = new JSONObject().toJSONString();
-
+    //特殊数据
     public static final String SPECIAL_FIELDS_FALSE = "0";
-
+    //特殊数据
     public static final String SPECIAL_FIELDS_TRUE = "1";
+
+    //设备code key
+    public static String DEVICE_CODE = "deviceCode";
+    /**
+     * 时间格式
+     */
+    public static String Time_Format = "yyyy-MM-dd HH:mm:ss";
+
 
     /**
      * ############################ mqtt ##################################

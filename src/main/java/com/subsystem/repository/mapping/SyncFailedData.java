@@ -19,7 +19,7 @@ import javax.persistence.Id;
 @Entity(name = "SYNC_FAILED_DATA")
 public class SyncFailedData {
     @Id
-    @Column(name = "KEY")
+    @Column(name = "`KEY`")
     String key;
     //设备类型名称
     @Column(name = "VALUE")
