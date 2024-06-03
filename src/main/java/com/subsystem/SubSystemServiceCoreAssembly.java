@@ -182,5 +182,4 @@ public class SubSystemServiceCoreAssembly {
 
         return metric;
     }
-
 }

@@ -6,9 +6,6 @@ import com.subsystem.common.Constants;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
-import junit.framework.TestCase;
-
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,12 +18,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-
 /**
  * Unit test for simple App.
  */
 @SpringBootTest
-public class SubSystemApplicationTest extends TestCase {
+public class SubSystemApplicationTest {
     @Autowired
     CacheManager cacheManager;
     @Autowired
@@ -138,7 +134,7 @@ public class SubSystemApplicationTest extends TestCase {
 
     @Test
     public void redisPipelinedTest222() {
-        testCa.saveGangzi(new User(2,19,"gangzi"));
+        testCa.saveGangzi(new User(2, 19, "gangzi"));
         User laona = testCa.getLaona(1);
     }
 

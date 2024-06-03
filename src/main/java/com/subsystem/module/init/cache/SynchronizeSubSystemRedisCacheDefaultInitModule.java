@@ -48,6 +48,7 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
      * 初始化同步缓存
      */
     private void initSnyCache() {
+        log.info("初始化同步缓存");
         //获取全部物模型的redis key
         List<String> modelKeys = subSystemStaticDataDefaultModule.getAllModelKeys();
         //批量从redis管道获取数据
@@ -66,6 +67,7 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
      * 初始化同步失败缓存
      */
     private void initSyncFailedCache() throws Exception {
+        log.info("初始化同步失败缓存");
         List<SyncFailedData> allSyncFailedData = repositoryModule.findAllSyncFailedData();
         for (SyncFailedData allSyncFailedDatum : allSyncFailedData) {
             String key = allSyncFailedDatum.getKey();
@@ -80,6 +82,7 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
      * 初始化联动缓存
      */
     private void initLinkageCache() {
+        log.info("初始化联动缓存");
         List<LinkageInfo> allLinkageInfo = repositoryModule.getAllLinkageInfo();
         for (LinkageInfo linkageInfo : allLinkageInfo) {
             String subSystemContext = linkageInfo.getSubSystemContext();

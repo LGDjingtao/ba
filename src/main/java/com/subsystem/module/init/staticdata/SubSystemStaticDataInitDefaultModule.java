@@ -42,19 +42,20 @@ public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData im
      * 初始化设备信息
      */
     private void initDeviceInfo() {
-        log.info("######### start 初始化设备信息");
+        log.info("Static######### start 初始化设备信息");
         this.allDeviceInfo = deviceInfoRepository.findAll();
-        log.info("######### in progress 初始化设备信息  ####  设备总数{}", allDeviceInfo.size());
+        log.info("Static######### in progress 初始化设备信息  ####  设备总数{}", allDeviceInfo.size());
         this.deviceInfoByCode = this.allDeviceInfo.stream().collect(Collectors.toMap(DeviceInfo::getDeviceCode, deviceInfo -> deviceInfo));
         this.deviceInfoBytripartiteCode = this.allDeviceInfo.stream().collect(Collectors.toMap(DeviceInfo::getDeviceTripartiteCode, deviceInfo -> deviceInfo));
         this.deviceInfoByTypeCode = this.allDeviceInfo.stream().collect(Collectors.groupingBy(DeviceInfo::getDeviceTypeCode));
-        log.info("######### end 初始化设备信息");
+        log.info("Static######### end 初始化设备信息");
     }
 
     /**
      * 初始化设备告警类型
      */
     private void initDeviceAlarmType() {
+        log.info("Static######### 初始化设备告警类型");
         this.allDeviceAlarmType = deviceAlarmTypeRepository.findAll();
         this.deviceAlarmTypeByType = this.allDeviceAlarmType.stream().collect(Collectors.groupingBy(DeviceAlarmType::getDeviceType));
     }
@@ -63,6 +64,7 @@ public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData im
      * 初始化设备故障类型
      */
     private void initDeviceFaultType() {
+        log.info("Static######### 初始化设备故障类型");
         this.allDeviceFaultType = deviceFaultTypeRepository.findAll();
         this.deviceFaultTypeByType = this.allDeviceFaultType.stream().collect(Collectors.groupingBy(DeviceFaultType::getDeviceType));
     }
@@ -71,6 +73,7 @@ public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData im
      * 初始化设备联动
      */
     private void initDeviceLinkage() {
+        log.info("Static######### 初始化设备联动");
         this.allDeviceLinkageRelationship = deviceLinkageRelationshipRepository.findAll();
     }
 }
