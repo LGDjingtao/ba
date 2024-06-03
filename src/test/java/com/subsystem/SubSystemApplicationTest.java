@@ -3,6 +3,7 @@ package com.subsystem;
 import com.alibaba.fastjson.JSON;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.common.Constants;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
@@ -140,18 +141,10 @@ public class SubSystemApplicationTest {
 
     @Test
     void test_cacheValid() {
-        User user = new User();
-        int id = 1;
-        user.setId(id);
-        user.setName("laona");
-        user.setAge(20);
-
-        testCa.saveLaona(user);
-
-        User target = testCa.getUser(id);
-
-//        Assert.assertNotNull(target);
-//        Assert.assertEquals(user.getName(), target.getName());
+        SubSystemDefaultContext subSystemDefaultContext = new SubSystemDefaultContext();
+        subSystemDefaultContext.setKey("asdasd");
+        //caffeineCacheModule.setLinkagCacheValue3(subSystemDefaultContext);
+        System.out.println();
 
     }
 

@@ -13,8 +13,7 @@ import javax.annotation.Resource;
 @Slf4j
 @Component
 public class TestCa {
-    @Resource
-    TestCa testCa;
+
     @Cacheable( cacheNames = Constants.LOCAL,key = "#id", sync = true)
     public User getUser(int id) {
         //TODO 查找数据库
@@ -39,7 +38,7 @@ public class TestCa {
 
     @CachePut( cacheNames = Constants.LOCAL, key = "#user.id")
     public User saveGangzi(User user) {
-        testCa.saveLaona(new User(1,18,"laona"));
+        //testCa.saveLaona(new User(1,18,"laona"));
         return user;
     }
 

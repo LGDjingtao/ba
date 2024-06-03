@@ -11,15 +11,19 @@ import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
 import com.subsystem.porp.BAProperties;
 import com.subsystem.repository.RepositoryModule;
 import com.subsystem.repository.mapping.AlarmInfo;
+import com.subsystem.repository.mapping.DeviceAlarmType;
 import com.subsystem.repository.mapping.DeviceInfo;
 import com.subsystem.repository.mapping.DeviceLinkageRelationshipData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  * 联动模块
@@ -35,6 +39,9 @@ public class LinkageModule {
     AlarmModule alarmModule;
     DataCleaningModule dataCleaningModule;
     RepositoryModule repositoryModule;
+    //事件驱动模块
+    ApplicationContext eventDrivenModule;
+    private final static ConcurrentHashMap<String, ScheduledExecutorService> map = new ConcurrentHashMap();
 
     /**
      * 监听设备联动事件
@@ -45,14 +52,49 @@ public class LinkageModule {
         LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
         boolean alarmOrAlarmCancel = true;
         if (!linkageInfo.isFirst()) {
-            //重新监测是否还告警
-            alarmOrAlarmCancel = alarmModule.alarmOrAlarmCancel(subSystemDefaultContext);
+            //更新实时数据
+            updateRealTimeData(subSystemDefaultContext);
+            //告警类型信息
+            updateDeviceAlarmType(subSystemDefaultContext);
+
+            DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
+            if (null == deviceAlarmType) {
+                alarmOrAlarmCancel = false;
+            } else {
+                //重新监测是否还告警
+                alarmOrAlarmCancel = alarmModule.alarmOrAlarmCancel(subSystemDefaultContext);
+            }
         }
+
         if (alarmOrAlarmCancel) {
             alarmHandle(subSystemDefaultContext);
         } else {
             alarmCancelHandle(linkageInfo);
         }
+    }
+
+    /**
+     * 更新 deviceAlarmType 告警类型信息
+     *
+     * @param subSystemDefaultContext 上下文
+     */
+    private void updateDeviceAlarmType(SubSystemDefaultContext subSystemDefaultContext) {
+        DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
+        String deviceCode = deviceInfo.getDeviceCode();
+        String alias = subSystemDefaultContext.getAlias();
+        DeviceAlarmType deviceAlarmType = alarmModule.getDeviceAlarmType(deviceCode, alias);
+        subSystemDefaultContext.setDeviceAlarmType(deviceAlarmType);
+    }
+
+    /**
+     * 更新实时数据
+     *
+     * @param subSystemDefaultContext 上下文
+     */
+    private void updateRealTimeData(SubSystemDefaultContext subSystemDefaultContext) {
+        String key = subSystemDefaultContext.getKey();
+        String realTimeData = caffeineCacheModule.getSynRedisFailedCacheValue(key);
+        subSystemDefaultContext.setRealTimeData(realTimeData);
     }
 
     /**
@@ -62,12 +104,65 @@ public class LinkageModule {
      */
     private void alarmHandle(SubSystemDefaultContext subSystemDefaultContext) {
         LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
-        String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
+
+        //去除第一次联动标识
+        linkageInfo.setFirst(false);
+
         //开风机
+        String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
         controlLinkageDevice(linkageDeviceCode, 1);
-        //保存联动信息
-        caffeineCacheModule.setLinkagCacheValue(subSystemDefaultContext);
+
+        //联动信息 入 库
+        repositoryModule.saveLinkageInfo(subSystemDefaultContext);
+
+        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
+        //结束延迟事件
+        endThisEvent(triggerDeviceCode);
+        //业务逻辑
+        Runnable runAble = getRunAble(subSystemDefaultContext);
+        //创建延迟任务
+        ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor();
+        this.map.put(linkageDeviceCode, scheduled);
+        //延迟15分钟后处理业务逻辑
+        scheduled.schedule(runAble, 15, TimeUnit.MINUTES);
+        log.info("task#联动定时任务创建任务成功");
     }
+
+    /**
+     * 联动逻辑
+     */
+    private Runnable getRunAble(SubSystemDefaultContext subSystemDefaultContext) {
+        return () -> {
+            LinkageEvent linkageEvent = new LinkageEvent(this, subSystemDefaultContext);
+            //触发一次联动事件
+            eventDrivenModule.publishEvent(linkageEvent);
+        };
+
+    }
+
+
+    /**
+     * 结束这个事件
+     */
+    private void endThisEvent(String deviceCode) {
+        if (this.map.containsKey(deviceCode)) {
+            ScheduledExecutorService scheduled = this.map.get(deviceCode);
+            scheduled.shutdown();
+        }
+    }
+
+
+    /**
+     * 检查任务是否已经关闭
+     */
+    private boolean checkShutdown(String linkageDeviceCode) {
+        ScheduledExecutorService scheduledExecutorService = this.map.get(linkageDeviceCode);
+        if (null == scheduledExecutorService || scheduledExecutorService.isShutdown()) {
+            return true;
+        }
+        return false;
+    }
+
 
     /**
      * 联动设备消警处理
@@ -80,6 +175,10 @@ public class LinkageModule {
         controlLinkageDevice(linkageDeviceCode, 0);
         //删除联动信息
         repositoryModule.deleteLinkageInfo(linkageDeviceCode);
+
+        //结束事件
+        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
+        endThisEvent(triggerDeviceCode);
     }
 
     /**

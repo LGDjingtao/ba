@@ -229,7 +229,7 @@ public class AlarmModule {
         return AlarmStrategy.strategicJudgment(alarmStrategy, alarmStrategyValue, value);
     }
 
-    private boolean isAlarmData(SubSystemDefaultContext subSystemDefaultContext) {
+    public boolean isAlarmData(SubSystemDefaultContext subSystemDefaultContext) {
         String alias = subSystemDefaultContext.getAlias();
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String deviceCode = deviceInfo.getDeviceCode();
@@ -246,7 +246,7 @@ public class AlarmModule {
      * @param alias
      * @return
      */
-    private DeviceAlarmType getDeviceAlarmType(String deviceCode, String alias) {
+    public DeviceAlarmType getDeviceAlarmType(String deviceCode, String alias) {
         List<DeviceAlarmType> deviceAlarmTypes = subSystemStaticDataDefaultModule.getDeviceAlarmTypeByDeviceCode(deviceCode);
         if (null == deviceAlarmTypes) return null;
         return deviceAlarmTypes

@@ -83,34 +83,11 @@ public class CacheConfig {
                 Caffeine.newBuilder()
                         .initialCapacity(50)
                         .maximumSize(10000)
-                        //.expireAfterAccess(Constants.EXPIRES_15_DAYS, TimeUnit.SECONDS)
-                        .expireAfterWrite(20000, TimeUnit.SECONDS)
-                        //缓存失效通知
-                        .removalListener((key, value, cause) -> {
-                            //todo 清理通知 key,value ==> 键值对   cause ==> 清理原因
-                            //todo 通过事件通知 告警服务去告警
-                        })
                         .build(loadCache -> loadCache)));
         list.add(new CaffeineCache(Constants.SYN_REDIS_FAILED,
                 Caffeine.newBuilder()
                         .initialCapacity(20)
                         .maximumSize(10000)
-                        .build(loadCache -> loadCache)));
-        list.add(new CaffeineCache(Constants.LINKAGE,
-                Caffeine.newBuilder()
-                        .initialCapacity(20)
-                        .maximumSize(100)
-                        //联动缓存15分钟失效
-                        .expireAfterWrite(Constants.EXPIRES_15_MIN, TimeUnit.SECONDS)
-                        .removalListener((key, value, cause) -> {
-                            //todo 替换不触发
-                            //失效后通知联动检测任务再次检测
-                            SubSystemDefaultContext subSystemDefaultContext = JSONObject.parseObject((String) value, SubSystemDefaultContext.class);
-                            LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
-                            linkageInfo.setFirst(false);
-                            LinkageEvent linkageEvent = new LinkageEvent(this, subSystemDefaultContext);
-                            eventDrivenModule.publishEvent(linkageEvent);
-                        })
                         .build(loadCache -> loadCache)));
         cacheManager.setCaches(list);
         return cacheManager;

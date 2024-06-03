@@ -47,6 +47,16 @@ public class CaffeineCacheModule {
 
 
     /**
+     * 根据缓存类型获取对应的缓存
+     * 这里根据业务需要 获取LoadingCache，因为这个缓存实现了 批量存入操作
+     */
+    public LoadingCache getLinkageCache() {
+        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.LINKAGE);
+        return (LoadingCache) cache.getNativeCache();
+    }
+
+
+    /**
      * 通过key 获取同步缓存
      */
     //@Cacheable(cacheNames = Constants.SYN_REDIS, key = "#key")
@@ -183,21 +193,5 @@ public class CaffeineCacheModule {
         repositoryModule.deleteSyncFailedDataByKey(key);
     }
 
-    /**
-     * 更新 联动缓存
-     *
-     * @param subSystemDefaultContext 上下文信息
-     */
-    @CachePut(cacheNames = Constants.LINKAGE, key = "#subSystemDefaultContext.linkageInfo.triggerDeviceCode")
-    public String setLinkagCacheValue(SubSystemDefaultContext subSystemDefaultContext) {
-        String key = subSystemDefaultContext.getLinkageInfo().getTriggerDeviceCode();
-        String context = JSONObject.toJSONString(subSystemDefaultContext);
-        com.subsystem.repository.mapping.LinkageInfo linkageInfo = new LinkageInfo();
-        linkageInfo.setKey(key);
-        linkageInfo.setSubSystemContext(context);
-        //数据库落盘
-        repositoryModule.saveLinkageInfo(linkageInfo);
-        return JSONObject.toJSONString(subSystemDefaultContext);
-    }
 
 }

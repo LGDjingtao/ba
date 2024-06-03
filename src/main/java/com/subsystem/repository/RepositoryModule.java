@@ -1,6 +1,8 @@
 package com.subsystem.repository;
 
 
+import com.alibaba.fastjson.JSONObject;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.repository.mapping.LinkageInfo;
 import com.subsystem.repository.mapping.SyncFailedData;
 import lombok.AllArgsConstructor;
@@ -69,9 +71,15 @@ public class RepositoryModule {
     /**
      * 保存联动信息
      *
-     * @param linkageInfo
+     * @param subSystemDefaultContext
      */
-    public void saveLinkageInfo(LinkageInfo linkageInfo) {
+    public void saveLinkageInfo(SubSystemDefaultContext subSystemDefaultContext) {
+        String key = subSystemDefaultContext.getLinkageInfo().getTriggerDeviceCode();
+        String context = JSONObject.toJSONString(subSystemDefaultContext);
+        com.subsystem.repository.mapping.LinkageInfo linkageInfo = new LinkageInfo();
+        linkageInfo.setKey(key);
+        linkageInfo.setSubSystemContext(context);
+        //数据库落盘
         linkageInfoRepository.save(linkageInfo);
     }
 
