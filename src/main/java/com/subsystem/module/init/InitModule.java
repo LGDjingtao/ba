@@ -4,5 +4,5 @@ public interface InitModule {
     /**
      * 初始化
      */
-    void init();
+    void init() throws Exception;
 }

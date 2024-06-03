@@ -1,12 +1,16 @@
 package com.subsystem.module.init.cache;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.common.Constants;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.init.InitModule;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
 import com.subsystem.repository.RepositoryModule;
+import com.subsystem.repository.mapping.LinkageInfo;
+import com.subsystem.repository.mapping.SyncFailedData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.DependsOn;
@@ -17,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * 初始化的时候同步子系统redis缓存到本地缓存
@@ -32,9 +34,10 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
     StringRedisModule stringRedisModule;
     CaffeineCacheModule caffeineCacheModule;
     RepositoryModule repositoryModule;
+
     @Override
     @PostConstruct
-    public void init() {
+    public void init() throws Exception {
         initSnyCache();
         initSyncFailedCache();
         initLinkageCache();
@@ -62,14 +65,26 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
     /**
      * 初始化同步失败缓存
      */
-    private void initSyncFailedCache() {
-        //repositoryModule.
+    private void initSyncFailedCache() throws Exception {
+        List<SyncFailedData> allSyncFailedData = repositoryModule.findAllSyncFailedData();
+        for (SyncFailedData allSyncFailedDatum : allSyncFailedData) {
+            String key = allSyncFailedDatum.getKey();
+            String value = allSyncFailedDatum.getValue();
+            caffeineCacheModule.setSynRedisFailedCacheValue(key, value);
+            //把失败数据同步到redis
+            caffeineCacheModule.setSynchronizeRedisCacheValue(key, value);
+        }
     }
 
     /**
      * 初始化联动缓存
      */
     private void initLinkageCache() {
-
+        List<LinkageInfo> allLinkageInfo = repositoryModule.getAllLinkageInfo();
+        for (LinkageInfo linkageInfo : allLinkageInfo) {
+            String subSystemContext = linkageInfo.getSubSystemContext();
+            SubSystemDefaultContext subSystemDefaultContext = JSONObject.parseObject(subSystemContext, SubSystemDefaultContext.class);
+            caffeineCacheModule.setLinkagCacheValue(subSystemDefaultContext);
+        }
     }
 }

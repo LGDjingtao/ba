@@ -7,15 +7,19 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @AllArgsConstructor
 @Slf4j
 public class RepositoryModule {
     SyncFailedDataRepository syncFailedDataRepository;
     LinkageInfoRepository linkageInfoRepository;
+
     /**
      * 更新异常数据到数据库
-     * @param key 物模型数据key
+     *
+     * @param key          物模型数据key
      * @param realTimeData 实时物模型数据
      */
     public SyncFailedData saveSyncFailedData(String key, String realTimeData) throws Exception {
@@ -37,6 +41,7 @@ public class RepositoryModule {
 
     /**
      * 删除同步失败缓存
+     *
      * @param key 物模型数据key
      */
     public void deleteSyncFailedDataByKey(String key) {
@@ -44,19 +49,39 @@ public class RepositoryModule {
     }
 
     /**
+     * 获取所有同步失败缓存
+     *
+     * @return
+     */
+    public List<SyncFailedData> findAllSyncFailedData() {
+        return syncFailedDataRepository.findAll();
+    }
+
+    /**
+     * 获取所有联动信息
+     *
+     * @return
+     */
+    public List<LinkageInfo> getAllLinkageInfo() {
+       return linkageInfoRepository.findAll();
+    }
+
+    /**
      * 保存联动信息
+     *
      * @param linkageInfo
      */
-    public void saveLinkageInfo(LinkageInfo  linkageInfo) {
+    public void saveLinkageInfo(LinkageInfo linkageInfo) {
         linkageInfoRepository.save(linkageInfo);
     }
 
 
     /**
      * 删除联动信息
+     *
      * @param key key
      */
-    public void deleteLinkageInfo( String key) {
+    public void deleteLinkageInfo(String key) {
         linkageInfoRepository.deleteById(key);
     }
 }
