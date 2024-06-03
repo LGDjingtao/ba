@@ -159,9 +159,5 @@ public class SubSystemApplicationTest extends TestCase {
 
     }
 
-    @Test
-    void test_cacheValid() {
 
-
-    }
 }

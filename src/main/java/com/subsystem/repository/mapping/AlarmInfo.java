@@ -51,8 +51,6 @@ public class AlarmInfo {
      * 转换的告警时间
      */
     @Column(name = "ALARM_LOCAL_TIME")
-    //@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    //@JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime alarmLocalTime;
 
     /**
@@ -86,7 +84,7 @@ public class AlarmInfo {
     /**
      * 告警处置状态 0:待处理 1:已处理
      */
-   // @NotNull(message = "告警处置状态参数不能为空")
+    // @NotNull(message = "告警处置状态参数不能为空")
     @Column(name = "ALARM_DISPOSAL_STATUS")
     private Integer alarmDisposalStatus;
 
@@ -126,8 +124,4 @@ public class AlarmInfo {
     @Column(name = "STATUS")
     private String status;
 
-    /**
-     * 是否告警
-     */
-    private Boolean isAlarm;
 }

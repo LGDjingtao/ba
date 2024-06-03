@@ -10,7 +10,7 @@ public class Constants {
     public static final int DEFAULT_EXPIRES = 3 * 60;
     public static final int EXPIRES_5_MIN = 5 * 60;
     public static final int EXPIRES_10_MIN = 10 * 60;
-
+    public static final int EXPIRES_15_MIN = 15 * 60;
     //15天
     public static final int EXPIRES_15_DAYS = 60 * 60 * 24 * 15;
 
@@ -20,6 +20,8 @@ public class Constants {
     public static final String LOCAL = "LOCAL";
     //同步失败缓存
     public static final String SYN_REDIS_FAILED = "SYN_FAILED";
+    //联动
+    public static final String LINKAGE = "LINKAGE";
 
     /** ############################ cache ################################## */
 
@@ -43,6 +45,16 @@ public class Constants {
 
     //设备code key
     public static String DEVICE_CODE = "deviceCode";
+
+    /**
+     * 故障物模型信息
+     */
+    public static String FAULT_MSG = "FAULT_MSG";
+
+    /**
+     * 告警物模型信息
+     */
+    public static String ALARM_MSG = "ALARM_MSG";
     /**
      * 时间格式
      */

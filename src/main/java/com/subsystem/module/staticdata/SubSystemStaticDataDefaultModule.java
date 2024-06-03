@@ -3,7 +3,9 @@ package com.subsystem.module.staticdata;
 import com.subsystem.common.Constants;
 import com.subsystem.module.init.staticdata.SubSystemStaticDataInitDefaultModule;
 import com.subsystem.repository.mapping.DeviceAlarmType;
+import com.subsystem.repository.mapping.DeviceFaultType;
 import com.subsystem.repository.mapping.DeviceInfo;
+import com.subsystem.repository.mapping.DeviceLinkageRelationshipData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -32,12 +34,23 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
      */
     @Override
     public String getDeviceCodeByTripartiteCode(String tripartiteCode) throws Exception {
-        DeviceInfo deviceInfo = deviceInfoBytripartiteCode.get(tripartiteCode);
+        DeviceInfo deviceInfo = getDeviceInfoByTripartiteCode(tripartiteCode);
         Optional.ofNullable(deviceInfo).orElseThrow(() -> {
             log.error("传入的三方标识:{}获取不到缓存key", tripartiteCode);
             return new Exception("获取不到缓存key");
         });
         return deviceInfo.getDeviceCode();
+    }
+
+    /**
+     * 获取设备信息，通过三方标识
+     *
+     * @param tripartiteCode 三方标识
+     * @return 设备code
+     */
+    @Override
+    public DeviceInfo getDeviceInfoByTripartiteCode(String tripartiteCode) {
+        return deviceInfoBytripartiteCode.get(tripartiteCode);
     }
 
     /**
@@ -98,13 +111,35 @@ public class SubSystemStaticDataDefaultModule extends SubSystemStaticData implem
     }
 
     /**
-     *  通过设备code 获取改设备的所有告警类型
+     * 通过设备code 获取改设备的所有告警类型
+     *
      * @param deviceCode 设备code
      * @return 告警类型数据
      */
-    public List<DeviceAlarmType> getDeviceTypeCodeByDeviceCode(String deviceCode) {
+    public List<DeviceAlarmType> getDeviceAlarmTypeByDeviceCode(String deviceCode) {
         DeviceInfo deviceInfo = deviceInfoByCode.get(deviceCode);
         String deviceTypeCode = deviceInfo.getDeviceTypeCode();
         return deviceAlarmTypeByType.get(deviceTypeCode);
+    }
+
+    /**
+     * 通过设备code 获取改设备的所有故障类型
+     *
+     * @param deviceCode 设备code
+     * @return 故障类型数据
+     */
+    public List<DeviceFaultType> getDeviceFaultTypeByDeviceCode(String deviceCode) {
+        DeviceInfo deviceInfo = deviceInfoByCode.get(deviceCode);
+        String deviceTypeCode = deviceInfo.getDeviceTypeCode();
+        return deviceFaultTypeByType.get(deviceTypeCode);
+    }
+
+    /**
+     * 获取所有联动设备关联信息
+     *
+     * @return 联动设备关联信息
+     */
+    public List<DeviceLinkageRelationshipData> getAllDeviceLinkageRelationship() {
+        return allDeviceLinkageRelationship;
     }
 }

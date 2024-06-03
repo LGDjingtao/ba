@@ -1,16 +1,22 @@
 package com.subsystem.module.cache;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.subsystem.common.Constants;
+import com.subsystem.event.LinkageEvent;
+import com.subsystem.module.SubSystemDefaultContext;
+import com.subsystem.module.linkage.LinkageInfo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 @AllArgsConstructor
 public class CacheConfig {
+    @Resource
+    ApplicationContext eventDrivenModule;
 
     /**
      * 创建基于Caffeine的Cache Manager
@@ -86,6 +94,21 @@ public class CacheConfig {
                 Caffeine.newBuilder()
                         .initialCapacity(20)
                         .maximumSize(10000)
+                        .build()));
+        list.add(new CaffeineCache(Constants.LINKAGE,
+                Caffeine.newBuilder()
+                        .initialCapacity(20)
+                        .maximumSize(100)
+                        //联动缓存15分钟失效
+                        .expireAfterWrite(Constants.EXPIRES_15_MIN, TimeUnit.SECONDS)
+                        .removalListener((key, value, cause) -> {
+                            //失效后通知联动检测任务再次检测
+                            SubSystemDefaultContext subSystemDefaultContext = JSONObject.parseObject((String) value, SubSystemDefaultContext.class);
+                            LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
+                            linkageInfo.setFirst(false);
+                            LinkageEvent linkageEvent = new LinkageEvent(this, subSystemDefaultContext);
+                            eventDrivenModule.publishEvent(linkageEvent);
+                        })
                         .build()));
         cacheManager.setCaches(list);
         return cacheManager;

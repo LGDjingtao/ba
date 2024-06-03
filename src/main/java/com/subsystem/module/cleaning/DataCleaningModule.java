@@ -4,13 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.subsystem.common.Constants;
 import com.subsystem.entity.Metric;
-import com.subsystem.entity.RealTimeData;
-import com.subsystem.event.AlarmEvent;
-import com.subsystem.event.EventCollection;
-import com.subsystem.event.SynRedisEvent;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.alarm.AlarmModule;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataModule;
+import com.subsystem.repository.mapping.DeviceInfo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -31,69 +29,50 @@ public class DataCleaningModule {
     AlarmModule alarmModule;
 
     /**
-     *
-     * @param metric 新的mqtt消息
-     * @param tripartiteCode 三方标识
      * @return 合并后的最新数据
      */
-    public RealTimeData dataCleaning(Metric metric, String tripartiteCode) throws Exception {
-        String deviceCode = subSystemStaticDataModule.getDeviceCodeByTripartiteCode(tripartiteCode);
-        //获取缓存key
-        String key = getKey(deviceCode);
+    public void dataCleaning(SubSystemDefaultContext subSystemDefaultContext) {
+        String key = subSystemDefaultContext.getKey();
         //查询同步缓存
         String targetCacheData = caffeineCacheModule.getSynchronizeRedisCacheValue(key);
         //比对缓存 相同数据不进行业务处理
-        if (caCheComparison(metric, targetCacheData)) return null;
+        if (caCheComparison(subSystemDefaultContext, targetCacheData)) return;
         //合并 数据
-        String realTimeDataStr = mergeData(metric, targetCacheData);
-        //创建同步事件
-        RealTimeData realTimeData = new RealTimeData();
-        realTimeData.setKey(key);
-        realTimeData.setRealTimeData(realTimeDataStr);
-        realTimeData.setDeviceCode(deviceCode);
-        realTimeData.setTripartiteCode(tripartiteCode);
-        realTimeData.setAlias(metric.getAlias());
-        realTimeData.setValue(metric.getValue());
-        realTimeData.setTimestamp(metric.getTimestamp());
-        return realTimeData;
+        String realTimeDataStr = mergeData(subSystemDefaultContext, targetCacheData);
+        //放入上下文
+        subSystemDefaultContext.setRealTimeData(realTimeDataStr);
     }
+
 
     /**
      * 合并 数据
      *
-     * @param metric          新数据
-     * @param targetCacheData 老缓存
+     * @param subSystemDefaultContext 子系统上下文
+     * @param targetCacheData         老缓存
      * @return 新缓存数据
      */
-    private static String mergeData(Metric metric, String targetCacheData) {
+    private static String mergeData(SubSystemDefaultContext subSystemDefaultContext, String targetCacheData) {
         JSONObject realTimeDataObj = JSON.parseObject(targetCacheData);
-        realTimeDataObj.put(metric.getAlias(), metric.getValue());
+        realTimeDataObj.put(subSystemDefaultContext.getAlias(), subSystemDefaultContext.getValue());
         String realTimeData = realTimeDataObj.toJSONString();
         return realTimeData;
     }
 
     /**
-     * @param metric          接收到的外部信息
-     * @param targetCacheData 从本地同步缓存拿到的数据
+     * @param subSystemDefaultContext 子系统上下文
+     * @param targetCacheData         从本地同步缓存拿到的数据
      * @return 是否一样
      */
-    private static Boolean caCheComparison(Metric metric, String targetCacheData) {
+    private static Boolean caCheComparison(SubSystemDefaultContext subSystemDefaultContext, String targetCacheData) {
         JSONObject targetObj = JSON.parseObject(targetCacheData);
-        String alias = metric.getAlias();
+        String alias = subSystemDefaultContext.getAlias();
         if (targetObj.containsKey(alias)) {
             Object cacheObj = targetObj.get(alias);
-            Object outObj = metric.getValue();
+            Object outObj = subSystemDefaultContext.getValue();
             return ObjectUtils.nullSafeEquals(cacheObj, outObj);
         }
         return false;
     }
 
-    /**
-     * @param deviceCode 设备code
-     * @return 缓存key
-     * @throws Exception
-     */
-    private String getKey(String deviceCode) {
-        return Constants.PREFIX_FOR_OBJECT_MODEL_KEY + deviceCode;
-    }
+
 }

@@ -10,6 +10,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("ba")
 public class BAProperties {
     String topic;//推送的topic
-    String alarmCenterUrl;//报警推送
-    String thresholdUrl;//阈值获取接口
 }

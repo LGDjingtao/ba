@@ -1,7 +1,9 @@
 package com.subsystem.module.staticdata;
 
 import com.subsystem.repository.mapping.DeviceAlarmType;
+import com.subsystem.repository.mapping.DeviceFaultType;
 import com.subsystem.repository.mapping.DeviceInfo;
+import com.subsystem.repository.mapping.DeviceLinkageRelationshipData;
 
 import java.util.List;
 import java.util.Map;
@@ -19,4 +21,12 @@ public abstract class SubSystemStaticData {
     /*********************设备告警********************/
     public static List<DeviceAlarmType> allDeviceAlarmType;
     public static Map<String, List<DeviceAlarmType>> deviceAlarmTypeByType;
+
+    /*********************设备故障********************/
+
+    public static List<DeviceFaultType> allDeviceFaultType;
+    public static Map<String, List<DeviceFaultType>> deviceFaultTypeByType;
+
+    /*********************设备联动********************/
+    public static List<DeviceLinkageRelationshipData> allDeviceLinkageRelationship;
 }

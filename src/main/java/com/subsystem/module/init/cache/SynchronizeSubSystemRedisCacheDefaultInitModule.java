@@ -6,6 +6,7 @@ import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.init.InitModule;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
+import com.subsystem.repository.RepositoryModule;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.DependsOn;
@@ -30,14 +31,14 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
     SubSystemStaticDataDefaultModule subSystemStaticDataDefaultModule;
     StringRedisModule stringRedisModule;
     CaffeineCacheModule caffeineCacheModule;
-
+    RepositoryModule repositoryModule;
     @Override
     @PostConstruct
     public void init() {
         initSnyCache();
         initSyncFailedCache();
+        initLinkageCache();
     }
-
 
 
     /**
@@ -62,6 +63,13 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule implements InitModu
      * 初始化同步失败缓存
      */
     private void initSyncFailedCache() {
+        //repositoryModule.
+    }
+
+    /**
+     * 初始化联动缓存
+     */
+    private void initLinkageCache() {
 
     }
 }

@@ -6,13 +6,15 @@ import com.subsystem.common.Constants;
 import com.subsystem.common.SpecialFieldsEnum;
 import com.subsystem.entity.Metric;
 import com.subsystem.entity.MqttPayload;
-import com.subsystem.entity.RealTimeData;
 import com.subsystem.event.EventCollection;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.alarm.AlarmModule;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.cleaning.DataCleaningModule;
+import com.subsystem.module.linkage.LinkageModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataModule;
 import com.subsystem.repository.mapping.AlarmInfo;
+import com.subsystem.repository.mapping.DeviceInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
@@ -45,10 +47,15 @@ public class SubSystemServiceCoreAssembly {
     //事件驱动模块
     @Resource
     ApplicationContext eventDrivenModule;
-
     //告警模块
     @Resource
     AlarmModule alarmModule;
+    //联动模块
+    @Resource
+    LinkageModule linkageModule;
+    //静态数据模块
+    @Resource
+    SubSystemStaticDataModule subSystemStaticDataModule;
 
     //业务组装入口
     public void serviceAssemblyEntrance(Message<?> message) throws Exception {
@@ -61,25 +68,65 @@ public class SubSystemServiceCoreAssembly {
         //数据转换
         Metric metric = dataConversion(message);
 
+        //创建子系统上下文
+        SubSystemDefaultContext subSystemDefaultContext = createSubSystemDefaultContext(metric, tripartiteCode);
+
         //数据清洗
-        RealTimeData realTimeData = dataCleaningModule.dataCleaning(metric, tripartiteCode);
+        dataCleaningModule.dataCleaning(subSystemDefaultContext);
 
-        //处理告警
-        AlarmInfo alarmInfo = alarmModule.handleAlarm(realTimeData);
+        //告警故障处理
+        alarmModule.alarmAndFaultHandle(subSystemDefaultContext);
 
-        EventCollection eventCollection = new EventCollection();
-        eventCollection.createSynRedisEvent(realTimeData);
-        eventCollection.createAlarmEvent(alarmInfo);
+        //触发设备联动
+        linkageModule.linkageHandle(subSystemDefaultContext);
+
         // 用前面步骤整理好的数据来 数据上报
-        dataReporting(eventCollection);
+        dataReporting(subSystemDefaultContext);
     }
 
-    //数据上报
-    private void dataReporting(EventCollection eventCollection) {
+    /**
+     * 数据上报
+     */
+    private void dataReporting(SubSystemDefaultContext subSystemDefaultContext) {
+        EventCollection eventCollection = new EventCollection();
+        eventCollection.createSynRedisEvent(subSystemDefaultContext);
+        eventCollection.createAlarmEvent(subSystemDefaultContext);
+        eventCollection.createLinkageEvent(subSystemDefaultContext);
         //上报物模型
         Optional.ofNullable(eventCollection.getSynRedisEvent()).ifPresent(SynRedisEvent -> eventDrivenModule.publishEvent(SynRedisEvent));
         //推送告/消警
         Optional.ofNullable(eventCollection.getAlarmEvent()).ifPresent(AlarmEvent -> eventDrivenModule.publishEvent(AlarmEvent));
+        //设备联动
+        Optional.ofNullable(eventCollection.getLinkageEvent()).ifPresent(LinkageEvent -> eventDrivenModule.publishEvent(LinkageEvent));
+    }
+
+    /**
+     * 创建子系统上下文
+     *
+     * @param metric         最新信息
+     * @param tripartiteCode 三方标识
+     * @return 子系统上下文
+     */
+    private SubSystemDefaultContext createSubSystemDefaultContext(Metric metric, String tripartiteCode) {
+        DeviceInfo deviceInfo = subSystemStaticDataModule.getDeviceInfoByTripartiteCode(tripartiteCode);
+        String deviceCode = deviceInfo.getDeviceCode();
+        //获取缓存key
+        String key = getKey(deviceCode);
+        SubSystemDefaultContext subSystemDefaultContext = new SubSystemDefaultContext();
+        subSystemDefaultContext.setKey(key);
+        subSystemDefaultContext.setDeviceInfo(deviceInfo);
+        subSystemDefaultContext.setAlias(metric.getAlias());
+        subSystemDefaultContext.setValue(metric.getValue());
+        subSystemDefaultContext.setTimestamp(metric.getTimestamp());
+        return subSystemDefaultContext;
+    }
+
+    /**
+     * @param deviceCode 设备code
+     * @return 缓存key
+     */
+    private String getKey(String deviceCode) {
+        return Constants.PREFIX_FOR_OBJECT_MODEL_KEY + deviceCode;
     }
 
 

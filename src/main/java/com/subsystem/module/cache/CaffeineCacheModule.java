@@ -1,12 +1,15 @@
 package com.subsystem.module.cache;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.common.Constants;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.repository.RepositoryModule;
+import com.subsystem.repository.mapping.LinkageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -16,10 +19,8 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
-import java.util.Optional;
 
 @Slf4j
 @Component
@@ -71,7 +72,7 @@ public class CaffeineCacheModule {
             saveExceptionData(key, realTimeData);
         }
         //同步成功 后 删除mysql和缓存
-        setSynRedisFailedCacheValue(key);
+        rmSynRedisFailedCacheValue(key);
         return realTimeData;
     }
 
@@ -172,9 +173,27 @@ public class CaffeineCacheModule {
      * @param key 物模型数据数据key
      */
     @CacheEvict(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key", condition = "#key")
-    public void setSynRedisFailedCacheValue(String key) {
+    public void rmSynRedisFailedCacheValue(String key) {
         String synRedisFailedCacheValue = (String) caffeineCacheModule.getSynRedisFailedCacheValue(key);
         if (Constants.EMPTY_JSON_OBJ.equals(synRedisFailedCacheValue)) return;
         repositoryModule.deleteSyncFailedDataByKey(key);
     }
+
+    /**
+     * 更新 联动缓存
+     *
+     * @param subSystemDefaultContext 上下文信息
+     */
+    @CachePut(cacheNames = Constants.LINKAGE, key = "#subSystemDefaultContext.linkageInfo.triggerDeviceCode")
+    public String setLinkagCacheValue(SubSystemDefaultContext subSystemDefaultContext) {
+        String key = subSystemDefaultContext.getLinkageInfo().getTriggerDeviceCode();
+        String context = JSONObject.toJSONString(subSystemDefaultContext);
+        com.subsystem.repository.mapping.LinkageInfo linkageInfo = new LinkageInfo();
+        linkageInfo.setKey(key);
+        linkageInfo.setSubSystemContext(context);
+        //数据库落盘
+        repositoryModule.saveLinkageInfo(linkageInfo);
+        return JSONObject.toJSONString(subSystemDefaultContext);
+    }
+
 }

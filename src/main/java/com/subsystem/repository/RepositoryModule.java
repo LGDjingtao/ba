@@ -1,7 +1,7 @@
 package com.subsystem.repository;
 
 
-import com.subsystem.module.cache.CaffeineCacheModule;
+import com.subsystem.repository.mapping.LinkageInfo;
 import com.subsystem.repository.mapping.SyncFailedData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +12,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RepositoryModule {
     SyncFailedDataRepository syncFailedDataRepository;
-    CaffeineCacheModule caffeineCacheModule;
-
+    LinkageInfoRepository linkageInfoRepository;
     /**
      * 更新异常数据到数据库
      * @param key 物模型数据key
@@ -37,9 +36,27 @@ public class RepositoryModule {
     }
 
     /**
+     * 删除同步失败缓存
      * @param key 物模型数据key
      */
     public void deleteSyncFailedDataByKey(String key) {
         syncFailedDataRepository.deleteById(key);
+    }
+
+    /**
+     * 保存联动信息
+     * @param linkageInfo
+     */
+    public void saveLinkageInfo(LinkageInfo  linkageInfo) {
+        linkageInfoRepository.save(linkageInfo);
+    }
+
+
+    /**
+     * 删除联动信息
+     * @param key key
+     */
+    public void deleteLinkageInfo( String key) {
+        linkageInfoRepository.deleteById(key);
     }
 }

@@ -1,7 +1,10 @@
 package com.subsystem.module.init.staticdata;
 
+import com.subsystem.repository.DeviceLinkageRelationshipRepository;
+import com.subsystem.repository.mapping.DeviceFaultType;
 import com.subsystem.module.init.InitModule;
 import com.subsystem.repository.DeviceAlarmTypeRepository;
+import com.subsystem.repository.DeviceFaultTypeRepository;
 import com.subsystem.repository.DeviceInfoRepository;
 import com.subsystem.repository.mapping.DeviceInfo;
 import com.subsystem.module.staticdata.SubSystemStaticData;
@@ -23,12 +26,16 @@ import com.subsystem.repository.mapping.DeviceAlarmType;
 public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData implements InitModule {
     DeviceInfoRepository deviceInfoRepository;
     DeviceAlarmTypeRepository deviceAlarmTypeRepository;
+    DeviceFaultTypeRepository deviceFaultTypeRepository;
+    DeviceLinkageRelationshipRepository deviceLinkageRelationshipRepository;
 
     @Override
     @PostConstruct
     public void init() {
         initDeviceInfo();
         initDeviceAlarmType();
+        initDeviceFaultType();
+        initDeviceLinkage();
     }
 
     /**
@@ -50,5 +57,20 @@ public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData im
     private void initDeviceAlarmType() {
         this.allDeviceAlarmType = deviceAlarmTypeRepository.findAll();
         this.deviceAlarmTypeByType = this.allDeviceAlarmType.stream().collect(Collectors.groupingBy(DeviceAlarmType::getDeviceType));
+    }
+
+    /**
+     * 初始化设备故障类型
+     */
+    private void initDeviceFaultType() {
+        this.allDeviceFaultType = deviceFaultTypeRepository.findAll();
+        this.deviceFaultTypeByType = this.allDeviceFaultType.stream().collect(Collectors.groupingBy(DeviceFaultType::getDeviceType));
+    }
+
+    /**
+     * 初始化设备联动
+     */
+    private void initDeviceLinkage() {
+        this.allDeviceLinkageRelationship = deviceLinkageRelationshipRepository.findAll();
     }
 }

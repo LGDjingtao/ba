@@ -1,21 +1,26 @@
 package com.subsystem.event;
 
-import com.subsystem.entity.RealTimeData;
+import com.subsystem.module.SubSystemDefaultContext;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
+/**
+ * 数据同步事件
+ */
 @Getter
 @Setter
 public class SynRedisEvent extends ApplicationEvent {
+    //缓存key
+    String key;
+    //实时物模型数据
+    String realTimeData;
 
-    //实时数据
-    RealTimeData realTimeData;
 
-
-    public SynRedisEvent(Object source, @NonNull RealTimeData realTimeData) {
+    public SynRedisEvent(Object source, @NonNull SubSystemDefaultContext subSystemDefaultContext) {
         super(source);
-        this.realTimeData = realTimeData;
+        this.key = subSystemDefaultContext.getKey();
+        this.realTimeData = subSystemDefaultContext.getRealTimeData();
     }
 }

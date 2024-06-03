@@ -2,7 +2,7 @@ package com.subsystem.module.task;
 
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.subsystem.entity.RealTimeData;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import lombok.AllArgsConstructor;
@@ -35,10 +35,10 @@ public class SynRedisFailedTask extends ScheduleTask {
     public void publishEvent(Map.Entry<Object, Object> entry) {
         String key = (String) entry.getKey();
         String realTimeDataStr = (String) entry.getValue();
-        RealTimeData realTimeData = new RealTimeData();
-        realTimeData.setKey(key);
-        realTimeData.setRealTimeData(realTimeDataStr);
-        SynRedisEvent synRedisEvent = new SynRedisEvent(this, realTimeData);
+        SubSystemDefaultContext subSystemDefaultContext = new SubSystemDefaultContext();
+        subSystemDefaultContext.setKey(key);
+        subSystemDefaultContext.setRealTimeData(realTimeDataStr);
+        SynRedisEvent synRedisEvent = new SynRedisEvent(this, subSystemDefaultContext);
         eventDrivenModule.publishEvent(synRedisEvent);
     }
 

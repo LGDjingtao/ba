@@ -1,23 +1,31 @@
 package com.subsystem.event;
 
-import com.subsystem.entity.RealTimeData;
+import com.subsystem.module.SubSystemDefaultContext;
+import com.subsystem.module.linkage.LinkageInfo;
 import com.subsystem.repository.mapping.AlarmInfo;
 import lombok.Data;
-import lombok.NonNull;
 
 @Data
 public class EventCollection {
     private SynRedisEvent synRedisEvent;
     private AlarmEvent alarmEvent;
+    private LinkageEvent linkageEvent;
 
-    public void createSynRedisEvent(RealTimeData realTimeData) {
-        if (null == realTimeData) return;
-        synRedisEvent = new SynRedisEvent(this, realTimeData);
+    public void createSynRedisEvent(SubSystemDefaultContext subSystemDefaultContext) {
+        if (null == subSystemDefaultContext) return;
+        synRedisEvent = new SynRedisEvent(this, subSystemDefaultContext);
     }
 
-    public void createAlarmEvent(AlarmInfo alarmInfo) {
+    public void createAlarmEvent(SubSystemDefaultContext subSystemDefaultContext) {
+        AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
         if (null == alarmInfo) return;
         alarmEvent = new AlarmEvent(this, alarmInfo);
+    }
+
+    public void createLinkageEvent(SubSystemDefaultContext subSystemDefaultContext) {
+        LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
+        if (null == linkageInfo) return;
+        linkageEvent = new LinkageEvent(this, subSystemDefaultContext);
     }
 
 }
