@@ -27,7 +27,7 @@ public class SynRedisFailedTask extends ScheduleTask {
     @Scheduled(cron = "0 0/1 * * * ? ")
     @Override
     public void run() {
-        LoadingCache synRedisFailedCache = caffeineCacheModule.getSynRedisFailedCache();
+        Cache<Object, Object> synRedisFailedCache = caffeineCacheModule.getSynRedisFailedCache();
         ConcurrentMap<@NonNull Object, @NonNull Object> map = synRedisFailedCache.asMap();
         if (map.isEmpty()) return;
         map.entrySet().stream().forEach(this::publishEvent);

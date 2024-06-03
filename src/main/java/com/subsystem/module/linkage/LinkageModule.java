@@ -1,6 +1,7 @@
 package com.subsystem.module.linkage;
 
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.subsystem.event.LinkageEvent;
 import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.alarm.AlarmModule;
@@ -93,7 +94,10 @@ public class LinkageModule {
      */
     private void updateRealTimeData(SubSystemDefaultContext subSystemDefaultContext) {
         String key = subSystemDefaultContext.getKey();
-        String realTimeData = caffeineCacheModule.getSynRedisFailedCacheValue(key);
+        String alias = subSystemDefaultContext.getAlias();
+        String realTimeData = caffeineCacheModule.getSynchronizeRedisCacheValue(key);
+        JSONObject realTimeDataObj = JSONObject.parseObject(realTimeData);
+        subSystemDefaultContext.setValue(realTimeDataObj.get(alias));
         subSystemDefaultContext.setRealTimeData(realTimeData);
     }
 
@@ -125,7 +129,7 @@ public class LinkageModule {
         this.map.put(linkageDeviceCode, scheduled);
         //延迟15分钟后处理业务逻辑
         scheduled.schedule(runAble, 15, TimeUnit.MINUTES);
-        log.info("task#联动定时任务创建任务成功");
+        log.info("task#告警联动定时任务创建任务成功");
     }
 
     /**
@@ -173,12 +177,14 @@ public class LinkageModule {
         String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
         //关风机
         controlLinkageDevice(linkageDeviceCode, 0);
+
+        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
         //删除联动信息
-        repositoryModule.deleteLinkageInfo(linkageDeviceCode);
+        repositoryModule.deleteLinkageInfo(triggerDeviceCode);
 
         //结束事件
-        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
         endThisEvent(triggerDeviceCode);
+        log.info("task#告警联动定时任务结束triggerDeviceCode:{}",triggerDeviceCode);
     }
 
     /**

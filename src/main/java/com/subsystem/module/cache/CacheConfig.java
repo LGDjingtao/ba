@@ -78,17 +78,17 @@ public class CacheConfig {
                             log.info("value:{}",value);
                             log.info("cause:{}",cause);
                         })
-                        .build(loadCache -> loadCache)));
+                        .build()));
         list.add(new CaffeineCache(Constants.LOCAL,
                 Caffeine.newBuilder()
                         .initialCapacity(50)
                         .maximumSize(10000)
-                        .build(loadCache -> loadCache)));
+                        .build()));
         list.add(new CaffeineCache(Constants.SYN_REDIS_FAILED,
                 Caffeine.newBuilder()
                         .initialCapacity(20)
                         .maximumSize(10000)
-                        .build(loadCache -> loadCache)));
+                        .build()));
         cacheManager.setCaches(list);
         return cacheManager;
     }

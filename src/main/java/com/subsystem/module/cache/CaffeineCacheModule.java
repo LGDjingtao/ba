@@ -36,35 +36,21 @@ public class CaffeineCacheModule {
     @Resource
     RepositoryModule repositoryModule;
 
-    /**
-     * 根据缓存类型获取对应的缓存
-     * 这里根据业务需要 获取LoadingCache，因为这个缓存实现了 批量存入操作
-     */
-    public LoadingCache getSynRedisCache() {
-        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.SYN_REDIS);
-        return (LoadingCache) cache.getNativeCache();
-    }
-
-
-    /**
-     * 根据缓存类型获取对应的缓存
-     * 这里根据业务需要 获取LoadingCache，因为这个缓存实现了 批量存入操作
-     */
-    public LoadingCache getLinkageCache() {
-        CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.LINKAGE);
-        return (LoadingCache) cache.getNativeCache();
-    }
-
 
     /**
      * 通过key 获取同步缓存
      */
-    //@Cacheable(cacheNames = Constants.SYN_REDIS, key = "#key")
-    public String getSynchronizeRedisCacheValue(String key) {
-        LoadingCache synRedisCache = getSynRedisCache();
-        String realTimeData = (String) synRedisCache.get(key);
-        if (null == realTimeData) return Constants.EMPTY_JSON_OBJ;
+    @Cacheable(cacheNames = Constants.SYN_REDIS, key = "#key")
+    public String setInitSynchronizeRedisCacheValue(String key, String realTimeData) {
         return realTimeData;
+    }
+
+    /**
+     * 通过key 获取同步缓存
+     */
+    @Cacheable(cacheNames = Constants.SYN_REDIS, key = "#key")
+    public String getSynchronizeRedisCacheValue(String key) {
+        return Constants.EMPTY_JSON_OBJ;
     }
 
     /**
@@ -76,8 +62,8 @@ public class CaffeineCacheModule {
     public String setSynchronizeRedisCacheValue(String key, String realTimeData) throws Exception {
         synExceptionData(key, realTimeData);
         try {
-//            double random = Math.random();
-//            if (random > 0.5) throw new Exception("测试");
+            double random = Math.random();
+            if (random > 0.5) throw new Exception("测试");
             redisModule.set(key, realTimeData);
         } catch (Exception e) {
             log.error("同步到redis失败\n设备:{}\n数据:{}\n", key, realTimeData, e);
@@ -98,7 +84,7 @@ public class CaffeineCacheModule {
         //查询 key 是否是异常数据
         String synRedisFailedCache = caffeineCacheModule.getSynRedisFailedCacheValue(key);
         //如果不在缓存里面 就不做处理
-        if (Constants.EMPTY_JSON_OBJ.equals(synRedisFailedCache)) return;
+        if (null == synRedisFailedCache) return;
         //在异常缓存里面 就更新最新的异常数据到数据库
         saveExceptionData(key, realTimeData);
     }
@@ -155,19 +141,17 @@ public class CaffeineCacheModule {
     /**
      * 通过key 获取 同步失败缓存
      */
-    public LoadingCache getSynRedisFailedCache() {
+    public Cache<Object, Object> getSynRedisFailedCache() {
         CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.SYN_REDIS_FAILED);
-        return (LoadingCache) cache.getNativeCache();
+        return cache.getNativeCache();
     }
 
     /**
      * 通过key 获取 同步失败缓存
      */
+    @Cacheable(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key", unless = "#result == null")
     public String getSynRedisFailedCacheValue(String key) {
-        LoadingCache synRedisFailedCache = getSynRedisFailedCache();
-        String realTimeData = (String)synRedisFailedCache.get(key);
-        if (null == realTimeData) return Constants.EMPTY_JSON_OBJ;
-        return realTimeData;
+        return null;
     }
 
     /**
@@ -189,7 +173,7 @@ public class CaffeineCacheModule {
     @CacheEvict(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key", condition = "#key")
     public void rmSynRedisFailedCacheValue(String key) {
         String synRedisFailedCacheValue = caffeineCacheModule.getSynRedisFailedCacheValue(key);
-        if (Constants.EMPTY_JSON_OBJ.equals(synRedisFailedCacheValue)) return;
+        if (null == synRedisFailedCacheValue) return;
         repositoryModule.deleteSyncFailedDataByKey(key);
     }
 

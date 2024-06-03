@@ -55,11 +55,14 @@ public class SynchronizeSubSystemRedisCacheDefaultInitModule {
         //处理空数据
         List<Object> filterData = baseData.stream().map(v -> null == v ? Constants.EMPTY_JSON_OBJ : v).collect(Collectors.toList());
         //聚合成key - value 存入本地缓存
-        Map<String, Object> result = Stream.iterate(0, n -> n + 1)
+        Stream.iterate(0, n -> n + 1)
                 .limit(modelKeys.size())
-                .collect(Collectors.toMap(modelKeys::get, filterData::get));
-        LoadingCache cache = caffeineCacheModule.getSynRedisCache();
-        cache.putAll(result);
+                .forEach(index -> {
+                    String key = modelKeys.get(index);
+                    String realTimeData = (String) filterData.get(index);
+                    caffeineCacheModule.setInitSynchronizeRedisCacheValue(key, realTimeData);
+                });
+        log.info("初始化同步缓存 end");
     }
 
     /**
