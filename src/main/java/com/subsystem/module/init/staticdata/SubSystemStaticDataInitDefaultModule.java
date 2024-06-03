@@ -1,21 +1,20 @@
 package com.subsystem.module.init.staticdata;
 
-import com.subsystem.repository.DeviceLinkageRelationshipRepository;
-import com.subsystem.repository.mapping.DeviceFaultType;
 import com.subsystem.module.init.InitModule;
+import com.subsystem.module.staticdata.SubSystemStaticData;
 import com.subsystem.repository.DeviceAlarmTypeRepository;
 import com.subsystem.repository.DeviceFaultTypeRepository;
 import com.subsystem.repository.DeviceInfoRepository;
+import com.subsystem.repository.DeviceLinkageRelationshipRepository;
+import com.subsystem.repository.mapping.DeviceAlarmType;
+import com.subsystem.repository.mapping.DeviceFaultType;
 import com.subsystem.repository.mapping.DeviceInfo;
-import com.subsystem.module.staticdata.SubSystemStaticData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.stream.Collectors;
-
-import com.subsystem.repository.mapping.DeviceAlarmType;
 
 /**
  * 子系统静态数据初始化逻辑组件

@@ -22,6 +22,8 @@ public class Constants {
     public static final String SYN_REDIS_FAILED = "SYN_FAILED";
     //联动
     public static final String LINKAGE = "LINKAGE";
+    //推送给硬件的命令
+    public static final String COMMAND = "command";
 
     /** ############################ cache ################################## */
 

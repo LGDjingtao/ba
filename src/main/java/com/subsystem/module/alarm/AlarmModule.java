@@ -201,6 +201,7 @@ public class AlarmModule {
         String deviceCode = deviceInfo.getDeviceCode();
         String alias = subSystemDefaultContext.getAlias();
         List<DeviceFaultType> deviceFaultTypes = subSystemStaticDataDefaultModule.getDeviceFaultTypeByDeviceCode(deviceCode);
+        if (null == deviceFaultTypes) return null;
         return deviceFaultTypes
                 .stream()
                 .filter(faultType -> faultType.getDeviceFaultAlias().equals(alias))
@@ -218,7 +219,8 @@ public class AlarmModule {
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String deviceCode = deviceInfo.getDeviceCode();
         DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
-        String value = (String) subSystemDefaultContext.getValue();
+        Object obj = subSystemDefaultContext.getValue();
+        String value = JSONObject.toJSONString(obj) ;
         //报警策略
         String alarmStrategy = deviceAlarmType.getAlarmStrategy();
         //报警阈值
@@ -232,8 +234,8 @@ public class AlarmModule {
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String deviceCode = deviceInfo.getDeviceCode();
         DeviceAlarmType deviceAlarmType = getDeviceAlarmType(deviceCode, alias);
-        subSystemDefaultContext.setDeviceAlarmType(deviceAlarmType);
         if (null == deviceAlarmType) return false;
+        subSystemDefaultContext.setDeviceAlarmType(deviceAlarmType);
         return true;
     }
 
@@ -246,6 +248,7 @@ public class AlarmModule {
      */
     private DeviceAlarmType getDeviceAlarmType(String deviceCode, String alias) {
         List<DeviceAlarmType> deviceAlarmTypes = subSystemStaticDataDefaultModule.getDeviceAlarmTypeByDeviceCode(deviceCode);
+        if (null == deviceAlarmTypes) return null;
         return deviceAlarmTypes
                 .stream()
                 .filter(deviceAlarmType -> deviceAlarmType.getAlarmAlias().equals(alias))
@@ -271,26 +274,26 @@ public class AlarmModule {
     }
 
     private String getAlarmStrategyValue(String deviceCode, DeviceAlarmType deviceAlarmType, String alarmStrategy, String alarmStrategyValue) {
-        try {
-            ResultBean<List<ThresholdVo>> receive = assetsFeign.receive(deviceCode);
-            int code = receive.getCode();
-            if (!NumberUtil.equals(code, 0)) {
-                log.error("获取阈值接口报错，code：{}", code);
-                throw new Exception();
-            }
-            List<ThresholdVo> thresholdVos = receive.getData();
-            //匹配对应告警
-            String strategyAlias = deviceAlarmType.getStrategyAlias();
-            ThresholdVo thresholdVo = thresholdVos.stream().filter(v -> strategyAlias.equals(v.getParamModelCode())).findFirst().orElse(null);
-            if (thresholdVos == null || thresholdVos.isEmpty()) {
-            } else if (alarmStrategy.equals("1")) {
-                alarmStrategyValue = thresholdVo.getMaxValue();
-            } else if (alarmStrategy.equals("2")) {
-                alarmStrategyValue = thresholdVo.getMinValue();
-            }
-        } catch (Exception e) {
-            log.error("使用默认阈值：{}", alarmStrategyValue);
-        }
+//        try {
+//            ResultBean<List<ThresholdVo>> receive = assetsFeign.receive(deviceCode);
+//            int code = receive.getCode();
+//            if (!NumberUtil.equals(code, 0)) {
+//                log.error("获取阈值接口报错，code：{}", code);
+//                throw new Exception();
+//            }
+//            List<ThresholdVo> thresholdVos = receive.getData();
+//            //匹配对应告警
+//            String strategyAlias = deviceAlarmType.getStrategyAlias();
+//            ThresholdVo thresholdVo = thresholdVos.stream().filter(v -> strategyAlias.equals(v.getParamModelCode())).findFirst().orElse(null);
+//            if (thresholdVos == null || thresholdVos.isEmpty()) {
+//            } else if (alarmStrategy.equals("1")) {
+//                alarmStrategyValue = thresholdVo.getMaxValue();
+//            } else if (alarmStrategy.equals("2")) {
+//                alarmStrategyValue = thresholdVo.getMinValue();
+//            }
+//        } catch (Exception e) {
+//            log.error("使用默认阈值：{}", alarmStrategyValue);
+//        }
         return alarmStrategyValue;
     }
 

@@ -12,7 +12,8 @@ public class EventCollection {
     private LinkageEvent linkageEvent;
 
     public void createSynRedisEvent(SubSystemDefaultContext subSystemDefaultContext) {
-        if (null == subSystemDefaultContext) return;
+        String realTimeData = subSystemDefaultContext.getRealTimeData();
+        if (null == realTimeData) return;
         synRedisEvent = new SynRedisEvent(this, subSystemDefaultContext);
     }
 

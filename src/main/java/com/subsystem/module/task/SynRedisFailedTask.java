@@ -2,6 +2,7 @@ package com.subsystem.module.task;
 
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.cache.CaffeineCacheModule;
@@ -26,7 +27,7 @@ public class SynRedisFailedTask extends ScheduleTask {
     @Scheduled(cron = "0 0/1 * * * ? ")
     @Override
     public void run() {
-        Cache<Object, Object> synRedisFailedCache = caffeineCacheModule.getSynRedisFailedCache();
+        LoadingCache synRedisFailedCache = caffeineCacheModule.getSynRedisFailedCache();
         ConcurrentMap<@NonNull Object, @NonNull Object> map = synRedisFailedCache.asMap();
         if (map.isEmpty()) return;
         map.entrySet().stream().forEach(this::publishEvent);

@@ -72,11 +72,12 @@ public class CacheConfig {
                 Caffeine.newBuilder()
                         .initialCapacity(2000)
                         .maximumSize(10000)
-                        //暂时先不失效
-                        //.expireAfterWrite(3, TimeUnit.SECONDS)
-                        /**
-                         *  todo (loadCache-> loadCache) 失效策略，后面按需求写获取逻辑
-                         */
+                        .removalListener((key, value, cause) -> {
+                            log.info("SYN_REDIS失效");
+                            log.info("key:{}",key);
+                            log.info("value:{}",value);
+                            log.info("cause:{}",cause);
+                        })
                         .build(loadCache -> loadCache)));
         list.add(new CaffeineCache(Constants.LOCAL,
                 Caffeine.newBuilder()
@@ -89,12 +90,12 @@ public class CacheConfig {
                             //todo 清理通知 key,value ==> 键值对   cause ==> 清理原因
                             //todo 通过事件通知 告警服务去告警
                         })
-                        .build()));
+                        .build(loadCache -> loadCache)));
         list.add(new CaffeineCache(Constants.SYN_REDIS_FAILED,
                 Caffeine.newBuilder()
                         .initialCapacity(20)
                         .maximumSize(10000)
-                        .build()));
+                        .build(loadCache -> loadCache)));
         list.add(new CaffeineCache(Constants.LINKAGE,
                 Caffeine.newBuilder()
                         .initialCapacity(20)
@@ -102,6 +103,7 @@ public class CacheConfig {
                         //联动缓存15分钟失效
                         .expireAfterWrite(Constants.EXPIRES_15_MIN, TimeUnit.SECONDS)
                         .removalListener((key, value, cause) -> {
+                            //todo 替换不触发
                             //失效后通知联动检测任务再次检测
                             SubSystemDefaultContext subSystemDefaultContext = JSONObject.parseObject((String) value, SubSystemDefaultContext.class);
                             LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
@@ -109,7 +111,7 @@ public class CacheConfig {
                             LinkageEvent linkageEvent = new LinkageEvent(this, subSystemDefaultContext);
                             eventDrivenModule.publishEvent(linkageEvent);
                         })
-                        .build()));
+                        .build(loadCache -> loadCache)));
         cacheManager.setCaches(list);
         return cacheManager;
     }

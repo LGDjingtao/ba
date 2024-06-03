@@ -11,8 +11,11 @@ import com.subsystem.module.staticdata.SubSystemStaticDataModule;
 import com.subsystem.repository.mapping.DeviceInfo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
 
 /**
  * 数据清洗模块
@@ -27,6 +30,8 @@ public class DataCleaningModule {
     CaffeineCacheModule caffeineCacheModule;
     //告警模块
     AlarmModule alarmModule;
+
+    CacheManager cacheManager;
 
     /**
      * @return 合并后的最新数据

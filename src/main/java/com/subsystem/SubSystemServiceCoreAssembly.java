@@ -13,7 +13,6 @@ import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.cleaning.DataCleaningModule;
 import com.subsystem.module.linkage.LinkageModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataModule;
-import com.subsystem.repository.mapping.AlarmInfo;
 import com.subsystem.repository.mapping.DeviceInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
@@ -61,6 +60,11 @@ public class SubSystemServiceCoreAssembly {
     public void serviceAssemblyEntrance(Message<?> message) throws Exception {
         //获取三方标识
         String tripartiteCode = getTripartiteCodeByMessage(message);
+
+        if (Constants.COMMAND.equals(tripartiteCode)) {
+            log.info("推送命令，不处理");
+            return ;
+        }
 
         //新数据刷新本地缓存 目的是为了刷新设备信息过期时间 用来感知设备是否离线
         caffeineCacheModule.setLocalCache(tripartiteCode);

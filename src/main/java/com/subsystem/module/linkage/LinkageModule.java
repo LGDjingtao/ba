@@ -10,6 +10,7 @@ import com.subsystem.module.mqtt.hanlder.MqttPublishGateway;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
 import com.subsystem.porp.BAProperties;
 import com.subsystem.repository.RepositoryModule;
+import com.subsystem.repository.mapping.AlarmInfo;
 import com.subsystem.repository.mapping.DeviceInfo;
 import com.subsystem.repository.mapping.DeviceLinkageRelationshipData;
 import lombok.AllArgsConstructor;
@@ -102,6 +103,8 @@ public class LinkageModule {
      * 联动处理
      */
     public void linkageHandle(SubSystemDefaultContext subSystemDefaultContext) {
+        AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
+        if (null == alarmInfo) return;
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String alias = subSystemDefaultContext.getAlias();
         String deviceCode = deviceInfo.getDeviceCode();
