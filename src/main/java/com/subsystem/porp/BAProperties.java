@@ -10,4 +10,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("ba")
 public class BAProperties {
     String topic;//推送的topic
+    Integer linkageTaskTime;//联动延迟任务时间
 }
