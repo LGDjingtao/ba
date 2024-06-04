@@ -24,4 +24,7 @@ public class SyncFailedData {
     //设备类型名称
     @Column(name = "VALUE")
     String value;
+    //更新时间
+    @Column(name = "UPDATE_TIME")
+    String updateTime;
 }

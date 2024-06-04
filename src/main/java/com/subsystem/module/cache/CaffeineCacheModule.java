@@ -59,7 +59,7 @@ public class CaffeineCacheModule {
         synExceptionData(key, realTimeData);
         try {
 //            double random = Math.random();
-//            if (random > 0.5) throw new Exception("测试");
+//            if (random > 0.3) throw new Exception("测试");
             redisModule.set(key, realTimeData);
         } catch (Exception e) {
             log.error("同步到redis失败\n设备:{}\n数据:{}\n", key, realTimeData, e);

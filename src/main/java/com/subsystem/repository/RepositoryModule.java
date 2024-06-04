@@ -2,11 +2,13 @@ package com.subsystem.repository;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.subsystem.common.Constants;
 import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.repository.mapping.LinkageInfo;
 import com.subsystem.repository.mapping.SyncFailedData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,6 +31,7 @@ public class RepositoryModule {
         try {
             syncFailedData.setKey(key);
             syncFailedData.setValue(realTimeData);
+            syncFailedData.setUpdateTime(new DateTime().toString(Constants.Time_Format));
             syncFailedData = syncFailedDataRepository.saveAndFlush(syncFailedData);
         } catch (Exception e) {
             /**
