@@ -128,8 +128,8 @@ public class SubSystemApplicationTest {
                 .limit(modelKeys.size())
                 .collect(Collectors.toMap(modelKeys::get, filterData::get));
 
-        LoadingCache cache = caffeineCacheModule.getSynRedisCache();
-        cache.putAll(result);
+        //LoadingCache cache = caffeineCacheModule.getSynRedisCache();
+        //cache.putAll(result);
         System.out.println("asdas");
     }
 

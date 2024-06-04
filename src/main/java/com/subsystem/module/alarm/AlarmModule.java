@@ -2,16 +2,12 @@ package com.subsystem.module.alarm;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.NumberUtil;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.subsystem.common.Constants;
-import com.subsystem.entity.SimpleReturnBo;
 import com.subsystem.feign.AlarmCenterFeign;
 import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.entity.ResultBean;
-import com.subsystem.entity.ThresholdVo;
 import com.subsystem.event.AlarmEvent;
 import com.subsystem.feign.AssetsFeign;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
@@ -42,6 +38,7 @@ public class AlarmModule {
     SubSystemStaticDataDefaultModule subSystemStaticDataDefaultModule;
     AssetsFeign assetsFeign;
     AlarmCenterFeign alarmCenterFeign;
+
     /**
      * 监听告警事件
      *
@@ -51,10 +48,11 @@ public class AlarmModule {
     public void alarmEventListener(AlarmEvent alarmEvent) {
         SubSystemDefaultContext subSystemDefaultContext = alarmEvent.getSubSystemDefaultContext();
         Boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
-        //消警这个项目不做处理
+        //消警广西这个项目不做处理
         if (!alarmOrAlarmCancel) return;
-        //todo 本地缓存告警信息 做告警信息清洗
+        //为了减少告警 消警前不推送告警信息
         AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
+        //若是告警不考虑顺序问题 这个可以异步推送
         ResultBean receive = alarmCenterFeign.receive(alarmInfo);
         int code = receive.getCode();
         if (!NumberUtil.equals(code, 200)) {
@@ -349,10 +347,28 @@ public class AlarmModule {
         } catch (Exception e) {
             log.error("阈值解析失败");
         }
+        String alarmMessage = deviceAlarmType.getAlarmMessage(deviceInfo.getDeviceCode());
+        StringBuilder stringBuilder = new StringBuilder(alarmMessage);
+        String alarmContent = replacementInfo(stringBuilder, Constants.THRESHOLD, threshold);
         alarmInfo.setAlarmCategory(deviceAlarmType.getAlarmContent());
-        alarmInfo.setAlarmContent(deviceAlarmType.getAlarmMessage(deviceInfo.getDeviceCode()) + threshold);
+        alarmInfo.setAlarmContent(alarmContent);
         alarmInfo.setLevel(Integer.valueOf(deviceAlarmType.getAlarmLevel()));
         alarmInfo.setAlarmSubsystemName(deviceAlarmType.getSysTypeName());
+    }
+
+    /**
+     * 在某字符前后添加字段
+     *
+     * @param stringBuilder ：原字符串
+     * @param keyword       ：字符
+     * @param before        ：在字符前需要插入的字段
+     * @return
+     */
+    public static String replacementInfo(StringBuilder stringBuilder, String keyword, String before) {
+        //字符第一次出现的位置
+        int index = stringBuilder.indexOf(keyword);
+        stringBuilder.insert(index, before);
+        return stringBuilder.toString();
     }
 
 }

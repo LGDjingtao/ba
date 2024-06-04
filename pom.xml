@@ -24,6 +24,7 @@
         <commons.io.version>2.11.0</commons.io.version>
         <fastjson.version>1.2.83</fastjson.version>
         <hutool-all.version>5.8.15</hutool-all.version>
+        <HikariCP.version>5.0.0</HikariCP.version>
     </properties>
 
     <dependencies>
@@ -128,7 +129,11 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.version}</version>
         </dependency>
-
+<!--        <dependency>-->
+<!--            <groupId>com.zaxxer</groupId>-->
+<!--            <artifactId>HikariCP</artifactId>-->
+<!--            <version>${HikariCP.version}</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -155,6 +160,11 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>${hutool-all.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10</version>
         </dependency>
     </dependencies>
 </project>

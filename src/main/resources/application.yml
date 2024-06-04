@@ -4,6 +4,13 @@ server:
 spring:
   application:
     name: sn-article-displacement
+  cloud:
+    nacos:
+      discovery:
+        server-addr: http://192.168.1.214:8848
+        namespace: gx-police-test
+        ip: 192.168.1.15
+        port: 30015
 #  datasource:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #    url: jdbc:mysql://192.168.29.128:3306/ba?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
@@ -16,10 +23,10 @@ spring:
 #      minimum-idle: 10
 #      idle-timeout: 500000
 #      max-lifetime: 540000
-
 #  jpa:
 #    hibernate:
 #      ddl-auto: update
+
   redis:
     database: 1
     host: 192.168.1.214
@@ -62,13 +69,20 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
 mqtt:
-  hostUrl: tcp://192.168.1.214:1883
+  hostUrl: tcp://192.168.29.128:1883
   username: admin
   password: public
-  inboundClientId: displacement-inbound
-  inboundGatewayTopics:
-    - /GATEWAY/NBMTWPYW1/#
-    - /GATEWAY/NBMTWPYW2/#
+  inboundClientIdBA: displacement-inbound-BA
+  inboundGatewayTopicBA: /GATEWAY/BA2/GXGAT/#
+  inboundClientIdNY: displacement-inbound-NY
+  inboundGatewayTopicNY: /GATEWAY/NY/GXGAT/#
+  inboundClientIdDL: displacement-inbound-DL
+  inboundGatewayTopicDL: /GATEWAY/DL/GXGAT/#
+  inboundClientIdHJ: displacement-inbound-HJ
+  inboundGatewayTopicHJ: /GATEWAY/HJ/GXGAT/#
+  inboundClientIdIAQ: displacement-inbound-IAQ
+  inboundGatewayTopicIAQ: /GATEWAY/IAQ/GXGAT/#
+
   outboundClientId: displacement-outbound
   outboundPlatformTopics:
     - /GATEWAY/NBMTWPYW/#
@@ -76,3 +90,7 @@ mqtt:
   timeout: 1000
   keepalive: 60
   enabled: false
+
+ba:
+  topic: /GATEWAY/BA2/GXGAT/command
+  linkageTaskTime: 5

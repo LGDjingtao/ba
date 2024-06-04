@@ -62,6 +62,8 @@ public class Constants {
      */
     public static String Time_Format = "yyyy-MM-dd HH:mm:ss";
 
+    public static String THRESHOLD = "阈值";
+
 
     /**
      * ############################ mqtt ##################################
