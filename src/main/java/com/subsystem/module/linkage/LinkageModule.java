@@ -21,10 +21,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 联动模块
@@ -42,7 +44,7 @@ public class LinkageModule {
     RepositoryModule repositoryModule;
     //事件驱动模块
     ApplicationContext eventDrivenModule;
-    private final static ConcurrentHashMap<String, ScheduledExecutorService> map = new ConcurrentHashMap();
+    private final static ConcurrentHashMap<String, ConcurrentHashMap<String, ScheduledExecutorService>> map = new ConcurrentHashMap();
 
     /**
      * 监听设备联动事件
@@ -51,27 +53,39 @@ public class LinkageModule {
     public void alarmEventListener(LinkageEvent linkageEvent) {
         SubSystemDefaultContext subSystemDefaultContext = linkageEvent.getSubSystemDefaultContext();
         LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
+        //是否是第一次联动
+        boolean first = linkageInfo.isFirst();
+        //是告警 还是消警
         boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
-        if (!linkageInfo.isFirst()) {
-            //更新实时数据
-            updateRealTimeData(subSystemDefaultContext);
-            //告警类型信息
-            updateDeviceAlarmType(subSystemDefaultContext);
+        //不是第一次联动 就需要重新获取告警信息
+        if (!first) alarmOrAlarmCancel = isAlarmOrAlarmCancel(subSystemDefaultContext);
+        //告警处理
+        if (alarmOrAlarmCancel) alarmHandle(subSystemDefaultContext);
+        //第一次联动不走消警逻辑
+        if (!alarmOrAlarmCancel && !first) alarmCancelHandle(linkageInfo);
+    }
 
-            DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
-            if (null == deviceAlarmType) {
-                alarmOrAlarmCancel = false;
-            } else {
-                //重新监测是否还告警
-                alarmOrAlarmCancel = alarmModule.alarmOrAlarmCancel(subSystemDefaultContext);
-            }
-        }
+    /**
+     * 重新判断是告警还是消警
+     *
+     * @param subSystemDefaultContext
+     * @return
+     */
+    private boolean isAlarmOrAlarmCancel(SubSystemDefaultContext subSystemDefaultContext) {
+        boolean alarmOrAlarmCancel;
+        //更新实时数据
+        updateRealTimeData(subSystemDefaultContext);
+        //告警类型信息
+        updateDeviceAlarmType(subSystemDefaultContext);
 
-        if (alarmOrAlarmCancel) {
-            alarmHandle(subSystemDefaultContext);
+        DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
+        if (null == deviceAlarmType) {
+            alarmOrAlarmCancel = false;
         } else {
-            alarmCancelHandle(linkageInfo);
+            //重新监测是否还告警
+            alarmOrAlarmCancel = alarmModule.alarmOrAlarmCancel(subSystemDefaultContext);
         }
+        return alarmOrAlarmCancel;
     }
 
     /**
@@ -121,14 +135,20 @@ public class LinkageModule {
 
         String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
         //结束延迟事件
-        endThisEvent(triggerDeviceCode);
+        endThisEvent(linkageDeviceCode, triggerDeviceCode);
+        log.info("task[告警]#联动定时任务结束\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}", linkageDeviceCode, triggerDeviceCode);
         //业务逻辑
         Runnable runAble = getRunAble(subSystemDefaultContext);
         //创建延迟任务
         ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor();
-        this.map.put(linkageDeviceCode, scheduled);
+        ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
+        if (null == triggerDeviceCodeMap) {
+            triggerDeviceCodeMap = new ConcurrentHashMap<>();
+            this.map.put(linkageDeviceCode, triggerDeviceCodeMap);
+        }
+        triggerDeviceCodeMap.put(triggerDeviceCode, scheduled);
         //延迟15分钟后处理业务逻辑
-        scheduled.schedule(runAble, 60, TimeUnit.SECONDS);
+        scheduled.schedule(runAble, 15, TimeUnit.SECONDS);
         log.info("task#告警联动定时任务创建任务成功");
     }
 
@@ -148,22 +168,25 @@ public class LinkageModule {
     /**
      * 结束这个事件
      */
-    private void endThisEvent(String triggerDeviceCode) {
-        if (this.map.containsKey(triggerDeviceCode)) {
-            ScheduledExecutorService scheduled = this.map.get(triggerDeviceCode);
-            scheduled.shutdown();
-            log.info("task#告警联动定时任务结束triggerDeviceCode:{}", triggerDeviceCode);
+    private void endThisEvent(String linkageDeviceCode, String triggerDeviceCode) {
+        if (this.map.containsKey(linkageDeviceCode)) {
+            ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
+            if (triggerDeviceCodeMap.containsKey(triggerDeviceCode)) {
+                ScheduledExecutorService scheduled = triggerDeviceCodeMap.get(triggerDeviceCode);
+                scheduled.shutdown();
+                triggerDeviceCodeMap.remove(triggerDeviceCode);
+            }
         }
     }
 
 
     /**
-     * 检查任务是否已经关闭
+     * 检查任务是否已经存在
      */
-    private boolean checkShutdown(String triggerDeviceCode) {
-        ScheduledExecutorService scheduledExecutorService = this.map.get(triggerDeviceCode);
-        if (null == scheduledExecutorService || scheduledExecutorService.isShutdown()) {
-            return true;
+    private boolean checkExist(String linkageDeviceCode, String triggerDeviceCode) {
+        if (this.map.containsKey(linkageDeviceCode)) {
+            ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
+            if (triggerDeviceCodeMap.containsKey(triggerDeviceCode)) return true;
         }
         return false;
     }
@@ -177,19 +200,14 @@ public class LinkageModule {
     private void alarmCancelHandle(LinkageInfo linkageInfo) {
         String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
         String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
-        /**
-         * 检查延迟任务是否已经关闭
-         */
-        boolean isShutdown = checkShutdown(triggerDeviceCode);
-        //已经关闭的任务不再处理
-        if (isShutdown) return;
+
         //关风机
         controlLinkageDevice(linkageDeviceCode, 0);
         //删除联动信息
         repositoryModule.deleteLinkageInfo(triggerDeviceCode);
         //结束事件
-        endThisEvent(triggerDeviceCode);
-
+        endThisEvent(linkageDeviceCode, triggerDeviceCode);
+        log.info("task[消警]#联动定时任务结束\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}", linkageDeviceCode, triggerDeviceCode);
     }
 
     /**
