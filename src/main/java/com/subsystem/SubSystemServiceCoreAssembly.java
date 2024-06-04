@@ -2,13 +2,11 @@ package com.subsystem;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.common.Constants;
 import com.subsystem.common.SpecialFieldsEnum;
 import com.subsystem.entity.Metric;
 import com.subsystem.entity.MqttPayload;
 import com.subsystem.event.EventCollection;
-import com.subsystem.event.LinkageEvent;
 import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.alarm.AlarmModule;
 import com.subsystem.module.cache.CaffeineCacheModule;
@@ -58,17 +56,17 @@ public class SubSystemServiceCoreAssembly {
     @Resource
     SubSystemStaticDataModule subSystemStaticDataModule;
 
-    //业务组装入口
+    /**
+     * 业务逻辑组装入口
+     */
     public void serviceAssemblyEntrance(Message<?> message) throws Exception {
         //获取三方标识
         String tripartiteCode = getTripartiteCodeByMessage(message);
 
-        if (Constants.COMMAND.equals(tripartiteCode)) {
-            log.info("推送命令，不处理");
-            return ;
-        }
+        //推送命令不参与逻辑处理 ，这是由于控制命令也会被接收 所以做这一层过滤
+        if (Constants.COMMAND.equals(tripartiteCode)) return;
 
-        //新数据刷新本地缓存 目的是为了刷新设备信息过期时间 用来感知设备是否离线
+        //新数据刷新本地缓存 目的是为了刷新设备信息过期时间 用来感知设备是否离线（暂时需求还没提 预感会有这一块需求）
         caffeineCacheModule.setLocalCache(tripartiteCode);
 
         //数据转换
@@ -94,30 +92,33 @@ public class SubSystemServiceCoreAssembly {
      * 数据上报
      */
     private void dataReporting(SubSystemDefaultContext subSystemDefaultContext) {
+        //创建各类事件
         EventCollection eventCollection = new EventCollection();
         eventCollection.createSynRedisEvent(subSystemDefaultContext);
         eventCollection.createAlarmEvent(subSystemDefaultContext);
         eventCollection.createLinkageEvent(subSystemDefaultContext);
-        //上报物模型
+        //推送数据同步事件
         Optional.ofNullable(eventCollection.getSynRedisEvent()).ifPresent(SynRedisEvent -> eventDrivenModule.publishEvent(SynRedisEvent));
-        //推送告/消警
+        //推送告/消警事件
         Optional.ofNullable(eventCollection.getAlarmEvent()).ifPresent(AlarmEvent -> eventDrivenModule.publishEvent(AlarmEvent));
-        //设备联动
+        //推送设备联动事件
         Optional.ofNullable(eventCollection.getLinkageEvent()).ifPresent(LinkageEvent -> eventDrivenModule.publishEvent(LinkageEvent));
     }
 
     /**
      * 创建子系统上下文
      *
-     * @param metric         最新信息
+     * @param metric         设备信息
      * @param tripartiteCode 三方标识
      * @return 子系统上下文
      */
     private SubSystemDefaultContext createSubSystemDefaultContext(Metric metric, String tripartiteCode) {
+        //设备信息
         DeviceInfo deviceInfo = subSystemStaticDataModule.getDeviceInfoByTripartiteCode(tripartiteCode);
         String deviceCode = deviceInfo.getDeviceCode();
         //获取缓存key
         String key = getKey(deviceCode);
+        //设置基础上下文信息
         SubSystemDefaultContext subSystemDefaultContext = new SubSystemDefaultContext();
         subSystemDefaultContext.setKey(key);
         subSystemDefaultContext.setDeviceInfo(deviceInfo);
@@ -128,6 +129,8 @@ public class SubSystemServiceCoreAssembly {
     }
 
     /**
+     * 获取缓存key
+     *
      * @param deviceCode 设备code
      * @return 缓存key
      */

@@ -5,6 +5,9 @@ import com.subsystem.module.linkage.LinkageInfo;
 import com.subsystem.repository.mapping.AlarmInfo;
 import lombok.Data;
 
+/**
+ * 事件集和
+ */
 @Data
 public class EventCollection {
     private SynRedisEvent synRedisEvent;

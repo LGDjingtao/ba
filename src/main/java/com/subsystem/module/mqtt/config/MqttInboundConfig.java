@@ -1,8 +1,8 @@
 package com.subsystem.module.mqtt.config;
 
 
-import com.subsystem.module.mqtt.prop.MqttProperties;
 import com.subsystem.module.mqtt.hanlder.MqttInboundReceiveHandle;
+import com.subsystem.module.mqtt.prop.MqttProperties;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,10 +14,8 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 
 
 /**

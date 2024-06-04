@@ -24,6 +24,7 @@ import java.util.List;
 public class LinkageInitModule {
     //事件驱动模块
     ApplicationContext eventDrivenModule;
+    //数据库模块
     RepositoryModule repositoryModule;
 
     @EventListener(classes = ApplicationReadyEvent.class)

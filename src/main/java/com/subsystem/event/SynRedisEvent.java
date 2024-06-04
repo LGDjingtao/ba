@@ -12,11 +12,14 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 @Setter
 public class SynRedisEvent extends ApplicationEvent {
-    //缓存key
+    /**
+     * 缓存key
+     */
     String key;
-    //实时物模型数据
+    /**
+     * 实时物模型数据（value）
+     */
     String realTimeData;
-
 
     public SynRedisEvent(Object source, @NonNull SubSystemDefaultContext subSystemDefaultContext) {
         super(source);

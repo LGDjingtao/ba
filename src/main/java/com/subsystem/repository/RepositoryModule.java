@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * 数据库数据获取模块
+ */
 @Component
 @AllArgsConstructor
 @Slf4j
@@ -68,7 +71,7 @@ public class RepositoryModule {
      * @return
      */
     public List<LinkageInfo> getAllLinkageInfo() {
-       return linkageInfoRepository.findAll();
+        return linkageInfoRepository.findAll();
     }
 
     /**

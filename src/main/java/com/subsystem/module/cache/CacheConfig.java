@@ -1,11 +1,7 @@
 package com.subsystem.module.cache;
 
-import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.subsystem.common.Constants;
-import com.subsystem.event.LinkageEvent;
-import com.subsystem.module.SubSystemDefaultContext;
-import com.subsystem.module.linkage.LinkageInfo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
@@ -19,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Configuration
@@ -70,13 +65,13 @@ public class CacheConfig {
         List<CaffeineCache> list = new ArrayList<>();
         list.add(new CaffeineCache(Constants.SYN_REDIS,
                 Caffeine.newBuilder()
-                        .initialCapacity(2000)
+                        .initialCapacity(2000)//后面可以考虑将这些值放入配置文件
                         .maximumSize(10000)
                         .removalListener((key, value, cause) -> {
                             log.info("SYN_REDIS失效");
-                            log.info("key:{}",key);
-                            log.info("value:{}",value);
-                            log.info("cause:{}",cause);
+                            log.info("key:{}", key);
+                            log.info("value:{}", value);
+                            log.info("cause:{}", cause);
                         })
                         .build()));
         list.add(new CaffeineCache(Constants.LOCAL,

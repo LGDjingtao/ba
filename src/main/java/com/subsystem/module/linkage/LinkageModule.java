@@ -57,7 +57,7 @@ public class LinkageModule {
         boolean first = linkageInfo.isFirst();
         //是告警 还是消警
         boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
-        //不是第一次联动 就需要重新获取告警信息
+        //不是第一次联动 就需要重新获取告警信息 和 重新判断时告警还是消警
         if (!first) alarmOrAlarmCancel = isAlarmOrAlarmCancel(subSystemDefaultContext);
         //告警处理
         if (alarmOrAlarmCancel) alarmHandle(subSystemDefaultContext);
@@ -126,15 +126,16 @@ public class LinkageModule {
         //去除第一次联动标识
         linkageInfo.setFirst(false);
 
-        //开风机
+        //开启联动设备
         String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
         controlLinkageDevice(linkageDeviceCode, 1);
 
-        //联动信息 入 库
+        //联动信息 入库 保证联动数据有状态
         repositoryModule.saveLinkageInfo(subSystemDefaultContext);
 
+        //触发设备的设备code
         String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
-        //结束延迟事件
+        //结束延迟事件 后面再开新的告警延迟事件
         endThisEvent(linkageDeviceCode, triggerDeviceCode);
         log.info("task[告警]#联动定时任务结束\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}", linkageDeviceCode, triggerDeviceCode);
         //业务逻辑
@@ -207,7 +208,7 @@ public class LinkageModule {
         log.info("task[消警]#联动定时任务结束\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}", linkageDeviceCode, triggerDeviceCode);
 
         //联动任务结束 后 需要看改设备身上还有没有绑定联动任务 一个联动任务都没有才关设备
-        if (checkExistTask( linkageDeviceCode)) return;
+        if (checkExistTask(linkageDeviceCode)) return;
         log.info("task[消警]#关闭设备");
         controlLinkageDevice(linkageDeviceCode, 0);
     }
@@ -219,6 +220,7 @@ public class LinkageModule {
      * @param controlCmd 0关 1开
      */
     private void controlLinkageDevice(String deviceCode, Integer controlCmd) {
+        //todo 这里后面可以加重试机制 开启失败可以推送联动告警事件（预测会有这个需求 产品组暂时没提就先不做）
         Map<String, Object> metrics = new HashMap<>();
         Map<String, Integer> message = new HashMap<>();
         //设备code转3方标识
@@ -234,6 +236,7 @@ public class LinkageModule {
      */
     public void linkageHandle(SubSystemDefaultContext subSystemDefaultContext) {
         AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
+        //没有告警信息 不参与联动处理 这个项目告警和联动强绑定
         if (null == alarmInfo) return;
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String alias = subSystemDefaultContext.getAlias();
@@ -244,10 +247,10 @@ public class LinkageModule {
                 .filter(v -> v.getDeviceCode().equals(deviceCode) && alias.equals(v.getThresholdAlias()))
                 .findAny()
                 .orElse(null);
-        //是否是联动设备检查,是联动设备，且是阈值报警就开风机,并开启联动事件逻辑
+        //是否是联动设备检查,联动设备才创建联动信息
         if (null == data) return;
+        //创建联动信息 并放入上下文
         String linkageDeviceCode = data.getLinkageDeviceCode();
-        //创建联动信息
         LinkageInfo linkageInfo = new LinkageInfo();
         linkageInfo.setTriggerDeviceCode(deviceCode);
         linkageInfo.setLinkageDeviceCode(linkageDeviceCode);

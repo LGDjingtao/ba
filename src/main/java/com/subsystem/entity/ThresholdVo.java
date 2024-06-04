@@ -7,8 +7,16 @@ import lombok.Data;
  */
 @Data
 public class ThresholdVo {
-    //标识符
+    /**
+     * 标识符
+     */
     String paramModelCode;
+    /**
+     * 最大阈值
+     */
     String maxValue;
+    /**
+     * 最小阈值
+     */
     String minValue;
 }

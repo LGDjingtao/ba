@@ -34,9 +34,17 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 public class AlarmModule {
-
+    /**
+     * 静态数据模块
+     */
     SubSystemStaticDataDefaultModule subSystemStaticDataDefaultModule;
+    /**
+     * 资产服务接口
+     */
     AssetsFeign assetsFeign;
+    /**
+     * 告警服务接口
+     */
     AlarmCenterFeign alarmCenterFeign;
 
     /**
@@ -48,9 +56,9 @@ public class AlarmModule {
     public void alarmEventListener(AlarmEvent alarmEvent) {
         SubSystemDefaultContext subSystemDefaultContext = alarmEvent.getSubSystemDefaultContext();
         Boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
-        //消警广西这个项目不做处理
+        //消警情况广西这个项目不做处理
         if (!alarmOrAlarmCancel) return;
-        //为了减少告警 消警前不推送告警信息
+        //todo 为了减少告警 消警前不推送告警信息
         AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
         //若是告警不考虑顺序问题 这个可以异步推送
         ResultBean receive = alarmCenterFeign.receive(alarmInfo);
@@ -62,11 +70,14 @@ public class AlarmModule {
 
 
     /**
-     * @param subSystemDefaultContext 实时数据
+     * 告警和故障处理
+     *
+     * @param subSystemDefaultContext 上下文
      * @return 告警信息
      */
     public void alarmAndFaultHandle(SubSystemDefaultContext subSystemDefaultContext) {
         String realTimeData = subSystemDefaultContext.getRealTimeData();
+        //没有最新数据 不参与告警和故障处理
         if (null == realTimeData) return;
         //故障处理
         faultHandle(subSystemDefaultContext);
@@ -77,6 +88,7 @@ public class AlarmModule {
         alarmHandle(subSystemDefaultContext);
         //构建告警信息
         AlarmInfo alarmInfo = buildAlarmInfo(subSystemDefaultContext);
+        //告警信息放入上下文
         subSystemDefaultContext.setAlarmInfo(alarmInfo);
     }
 
@@ -106,17 +118,22 @@ public class AlarmModule {
     private void alarmHandle(SubSystemDefaultContext subSystemDefaultContext) {
         //告警还是消警
         boolean alarmOrAlarmCancel = alarmOrAlarmCancel(subSystemDefaultContext);
+        //告警还是消警存入上下文
         subSystemDefaultContext.setAlarmOrAlarmCancel(alarmOrAlarmCancel);
 
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String deviceCode = deviceInfo.getDeviceCode();
         String realTimeDataStr = subSystemDefaultContext.getRealTimeData();
 
-        JSONObject physicalModel = JSONObject.parseObject(realTimeDataStr);
         //获取告警描述信息
         DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
+        //设备告警信息描述
         String deviceAlarmMessage = deviceAlarmType.getAlarmMessage(deviceCode);
 
+
+        //解析出最新物模型数据
+        JSONObject physicalModel = JSONObject.parseObject(realTimeDataStr);
+        //每个设备物模型都有ALARM_MSG字段 ，保存当前设备处于告警时的告警描述信息 ，多个描述信息使用 “,” 分割
         String deviceAlarmMessageCaChe = physicalModel.getString(Constants.ALARM_MSG);
         if (StringUtils.isEmpty(deviceAlarmMessageCaChe)) deviceAlarmMessageCaChe = "";
         String[] split = deviceAlarmMessageCaChe.split(",");
@@ -233,6 +250,12 @@ public class AlarmModule {
         return AlarmStrategy.strategicJudgment(alarmStrategy, alarmStrategyValue, value);
     }
 
+    /**
+     * 是否是告警数据
+     *
+     * @param subSystemDefaultContext
+     * @return true-告警数据 false-非告警数据
+     */
     public boolean isAlarmData(SubSystemDefaultContext subSystemDefaultContext) {
         String alias = subSystemDefaultContext.getAlias();
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
@@ -247,8 +270,8 @@ public class AlarmModule {
      * 获取对应的告警类型信息
      *
      * @param deviceCode 设备code
-     * @param alias
-     * @return
+     * @param alias      物模型某一个属性别名
+     * @return 告警类型信息
      */
     public DeviceAlarmType getDeviceAlarmType(String deviceCode, String alias) {
         List<DeviceAlarmType> deviceAlarmTypes = subSystemStaticDataDefaultModule.getDeviceAlarmTypeByDeviceCode(deviceCode);
@@ -266,7 +289,7 @@ public class AlarmModule {
      * @param deviceCode      设备code
      * @param deviceAlarmType 设备告警类型信息
      * @param alarmStrategy   告警策略
-     * @return
+     * @return 阈值
      */
     private String getAlarmStrategyValue(String deviceCode, DeviceAlarmType deviceAlarmType, String alarmStrategy) {
         //预先给一个默认阈值，拿不到就使用默认阈值
@@ -357,7 +380,7 @@ public class AlarmModule {
     }
 
     /**
-     * 在某字符前后添加字段
+     * 在某字符前添加字段 且第一次出现的地方
      *
      * @param stringBuilder ：原字符串
      * @param keyword       ：字符

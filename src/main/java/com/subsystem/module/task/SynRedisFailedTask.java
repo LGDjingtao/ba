@@ -2,9 +2,8 @@ package com.subsystem.module.task;
 
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.event.SynRedisEvent;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 @Slf4j
 @AllArgsConstructor
 public class SynRedisFailedTask extends ScheduleTask {
+    //缓存模块
     CaffeineCacheModule caffeineCacheModule;
     //事件驱动模块
     ApplicationContext eventDrivenModule;
@@ -41,7 +41,7 @@ public class SynRedisFailedTask extends ScheduleTask {
         subSystemDefaultContext.setRealTimeData(realTimeDataStr);
         SynRedisEvent synRedisEvent = new SynRedisEvent(this, subSystemDefaultContext);
         eventDrivenModule.publishEvent(synRedisEvent);
-        log.info("重新同步redis\nkey{}\nvalue:{}",key,realTimeDataStr);
+        log.info("重新同步redis\nkey{}\nvalue:{}", key, realTimeDataStr);
     }
 
 }

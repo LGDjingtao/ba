@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SimpleReturnBo implements Return{
+public class SimpleReturnBo implements Return {
     private static final long serialVersionUID = 8587315569034866329L;
     private boolean success;
     private String msg;
@@ -25,28 +25,28 @@ public class SimpleReturnBo implements Return{
         return this.msg;
     }
 
-    public static SimpleReturnBo getDefaultInstance(){
+    public static SimpleReturnBo getDefaultInstance() {
         return SimpleReturnBo.builder()
                 .success(Boolean.FALSE)
                 .msg(null)
                 .build();
     }
 
-    public static SimpleReturnBo getSuccessInstance(){
+    public static SimpleReturnBo getSuccessInstance() {
         return SimpleReturnBo.builder()
                 .success(Boolean.TRUE)
                 .msg("操作成功")
                 .build();
     }
 
-    public static SimpleReturnBo getFailedInstance(){
+    public static SimpleReturnBo getFailedInstance() {
         return SimpleReturnBo.builder()
                 .success(Boolean.FALSE)
                 .msg("操作失败")
                 .build();
     }
 
-    public static SimpleReturnBo getFailedInstance(String errorMsg){
+    public static SimpleReturnBo getFailedInstance(String errorMsg) {
         return SimpleReturnBo.builder()
                 .success(Boolean.FALSE)
                 .msg("操作失败")

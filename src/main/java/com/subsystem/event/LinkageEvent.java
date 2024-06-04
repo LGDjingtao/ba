@@ -1,8 +1,6 @@
 package com.subsystem.event;
 
 import com.subsystem.module.SubSystemDefaultContext;
-import com.subsystem.module.linkage.LinkageInfo;
-import com.subsystem.repository.mapping.AlarmInfo;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
@@ -13,6 +11,9 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 @Setter
 public class LinkageEvent extends ApplicationEvent {
+    /**
+     * 子系统上下文
+     */
     private SubSystemDefaultContext subSystemDefaultContext;
 
     public LinkageEvent(Object source, SubSystemDefaultContext subSystemDefaultContext) {

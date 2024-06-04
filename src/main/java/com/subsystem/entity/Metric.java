@@ -10,6 +10,7 @@ public class Metric {
 	private String subSystem;
 	private String name;
 	private Object value;
+	//todo 这个data迟早要优化 先标记
 	private Date timestamp;
 	private String quality;
 	private String alias;

@@ -11,48 +11,74 @@ public class Constants {
     public static final int EXPIRES_5_MIN = 5 * 60;
     public static final int EXPIRES_10_MIN = 10 * 60;
     public static final int EXPIRES_15_MIN = 15 * 60;
-    //15天
     public static final int EXPIRES_15_DAYS = 60 * 60 * 24 * 15;
 
-    //同步缓存
+    /**
+     * 同步缓存
+     */
     public static final String SYN_REDIS = "SYN_REDIS";
-    //本地缓存
+    /**
+     * 本地缓存
+     */
     public static final String LOCAL = "LOCAL";
-    //同步失败缓存
+    /**
+     * 同步失败缓存
+     */
     public static final String SYN_REDIS_FAILED = "SYN_FAILED";
-    //联动
+    /**
+     * 联动
+     */
     public static final String LINKAGE = "LINKAGE";
-    //推送给硬件的命令
+    /**
+     * 推送给硬件的命令
+     */
     public static final String COMMAND = "command";
 
     /** ############################ cache ################################## */
 
 
+    /** ############################ redis ################################## */
     /**
-     * ############################ redis ##################################
+     * 物模型缓存在redis key的前缀
      */
-
-    //物模型key的前缀
     public static final String PREFIX_FOR_OBJECT_MODEL_KEY = "device_report_";
 
+    /** ############################ redis ################################## */
+
+
+    /** ############################ mqtt ################################## */
     /**
-     * ############################ redis ##################################
+     * 请求topic 框架固定别名
      */
-    //特殊数据
+    public static final String MQTT_RECEIVEDTOPIC = "mqtt_receivedTopic";
+
+    /** ############################ mqtt ################################## */
+
+
+    /**
+     * 特殊数据
+     */
     public static final String EMPTY_JSON_OBJ = new JSONObject().toJSONString();
-    //特殊数据
+    /**
+     * 特殊数据
+     */
     public static final String SPECIAL_FIELDS_FALSE = "0";
-    //特殊数据
+    /**
+     * 特殊数据
+     */
     public static final String SPECIAL_FIELDS_TRUE = "1";
-
-    //设备code key
+    /**
+     * 特殊数据
+     */
+    public static String THRESHOLD = "阈值";
+    /**
+     * 设备code
+     */
     public static String DEVICE_CODE = "deviceCode";
-
     /**
      * 故障物模型信息
      */
     public static String FAULT_MSG = "FAULT_MSG";
-
     /**
      * 告警物模型信息
      */
@@ -62,14 +88,5 @@ public class Constants {
      */
     public static String Time_Format = "yyyy-MM-dd HH:mm:ss";
 
-    public static String THRESHOLD = "阈值";
-
-
-    /**
-     * ############################ mqtt ##################################
-     */
-    public static final String MQTT_RECEIVEDTOPIC = "mqtt_receivedTopic";
-
-    /** ############################ mqtt ################################## */
 
 }

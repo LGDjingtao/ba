@@ -2,7 +2,6 @@ package com.subsystem.module.mqtt.config;
 
 
 import com.subsystem.module.mqtt.prop.MqttProperties;
-import com.subsystem.module.mqtt.hanlder.MqttInboundReceiveHandle;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;

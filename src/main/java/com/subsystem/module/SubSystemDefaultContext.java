@@ -13,24 +13,44 @@ import java.util.Date;
  */
 @Data
 public class SubSystemDefaultContext {
-    //设备信息
+    /**
+     * 设备信息
+     */
     private DeviceInfo deviceInfo;
-    //告警信息
+    /**
+     * 告警信息
+     */
     private AlarmInfo alarmInfo;
-    //告警还是消警 true-告警 false-消警
-    private  Boolean alarmOrAlarmCancel;
-    //联动信息
+    /**
+     * 告警还是消警 true-告警 false-消警
+     */
+    private Boolean alarmOrAlarmCancel;
+    /**
+     * 联动信息
+     */
     private LinkageInfo linkageInfo;
-    //物模型别名
+    /**
+     * 物模型别名
+     */
     private String alias;
-    //实时值
+    /**
+     * 实时物模型值
+     */
     private Object value;
-    //时间
+    /**
+     * 接受到数据时间
+     */
     private Date timestamp;
-    //缓存key
+    /**
+     * 缓存key
+     */
     private String key;
-    //实时物模型数据
+    /**
+     * 实时物模型所有数据
+     */
     private String realTimeData;
-    //告警类型信息
+    /**
+     * 告警类型信息
+     */
     private DeviceAlarmType deviceAlarmType;
 }

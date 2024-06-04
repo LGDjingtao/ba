@@ -18,7 +18,7 @@ public class SubSystemStaticDataController {
     /**
      * 更新子系统静态数据
      */
-    @GetMapping(value = "/update")
+    @GetMapping(value = "/update/staticdata")
     public ResultBean updateSubSystemStaticData() {
         subSystemStaticDataDefaultModule.updateSubSystemStaticData();
         return ResultBean.success("更新子系统静态数据成功");

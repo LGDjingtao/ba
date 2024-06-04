@@ -58,15 +58,13 @@ public class CaffeineCacheModule {
     public String setSynchronizeRedisCacheValue(String key, String realTimeData) throws Exception {
         synExceptionData(key, realTimeData);
         try {
-//            double random = Math.random();
-//            if (random > 0.3) throw new Exception("测试");
             redisModule.set(key, realTimeData);
         } catch (Exception e) {
             log.error("同步到redis失败\n设备:{}\n数据:{}\n", key, realTimeData, e);
             saveExceptionData(key, realTimeData);
             return realTimeData;
         }
-        //同步成功 后 删除mysql和缓存
+        //同步成功 后 删除数据库和缓存
         rmSynRedisFailedCacheValue(key);
         return realTimeData;
     }
@@ -93,7 +91,9 @@ public class CaffeineCacheModule {
      */
     @EventListener(classes = SynRedisEvent.class)
     public void synRedisEventListener(SynRedisEvent synRedisEvent) {
+        //缓存key
         String key = synRedisEvent.getKey();
+        //最新数据
         String realTimeData = synRedisEvent.getRealTimeData();
         //修改同步缓存
         try {
@@ -117,13 +117,6 @@ public class CaffeineCacheModule {
         caffeineCacheModule.setSynRedisFailedCacheValue(key, realTimeData);
     }
 
-//    /**
-//     * 通过key获取本地缓存
-//     */
-//    @Cacheable(cacheNames = Constants.LOCAL, key = "#key")
-//    public Object getLocalCacheValue(String key) {
-//        return Constants.EMPTY_JSON_OBJ;
-//    }
 
     /**
      * 更新 本地缓存
@@ -136,7 +129,7 @@ public class CaffeineCacheModule {
 
 
     /**
-     * 通过key 获取 同步失败缓存
+     * 获取 同步失败缓存
      */
     public Cache<Object, Object> getSynRedisFailedCache() {
         CaffeineCache cache = (CaffeineCache) cacheManager.getCache(Constants.SYN_REDIS_FAILED);
@@ -144,7 +137,7 @@ public class CaffeineCacheModule {
     }
 
     /**
-     * 通过key 获取 同步失败缓存
+     * 通过key 获取 同步失败缓存 但不缓存
      */
     @Cacheable(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key", unless = "#result == null")
     public String getSynRedisFailedCacheValue(String key) {

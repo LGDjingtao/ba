@@ -3,15 +3,12 @@ package com.subsystem.module.redis;
 import com.alibaba.fastjson.JSON;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -49,18 +46,6 @@ public class StringRedisModule {
             return null;
         });
         return result;
-
-//        List<Object> result = redisTemplate.executePipelined(new RedisCallback<String>() {
-//            @Override
-//            public String doInRedis(RedisConnection connection) throws DataAccessException {
-//                StringRedisConnection src = (StringRedisConnection) connection;
-//
-//                for (String k : keys) {
-//                    src.get(k);
-//                }
-//                return null;
-//            }
-//        });
     }
 
 }
