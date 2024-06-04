@@ -1,15 +1,11 @@
 package com.subsystem.module.cache;
 
 
-import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.subsystem.common.Constants;
-import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.event.SynRedisEvent;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.repository.RepositoryModule;
-import com.subsystem.repository.mapping.LinkageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -62,12 +58,13 @@ public class CaffeineCacheModule {
     public String setSynchronizeRedisCacheValue(String key, String realTimeData) throws Exception {
         synExceptionData(key, realTimeData);
         try {
-            double random = Math.random();
-            if (random > 0.5) throw new Exception("测试");
+//            double random = Math.random();
+//            if (random > 0.5) throw new Exception("测试");
             redisModule.set(key, realTimeData);
         } catch (Exception e) {
             log.error("同步到redis失败\n设备:{}\n数据:{}\n", key, realTimeData, e);
             saveExceptionData(key, realTimeData);
+            return realTimeData;
         }
         //同步成功 后 删除mysql和缓存
         rmSynRedisFailedCacheValue(key);

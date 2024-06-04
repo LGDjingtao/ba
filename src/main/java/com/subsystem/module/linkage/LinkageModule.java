@@ -51,7 +51,7 @@ public class LinkageModule {
     public void alarmEventListener(LinkageEvent linkageEvent) {
         SubSystemDefaultContext subSystemDefaultContext = linkageEvent.getSubSystemDefaultContext();
         LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
-        boolean alarmOrAlarmCancel = true;
+        boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
         if (!linkageInfo.isFirst()) {
             //更新实时数据
             updateRealTimeData(subSystemDefaultContext);
@@ -128,7 +128,7 @@ public class LinkageModule {
         ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor();
         this.map.put(linkageDeviceCode, scheduled);
         //延迟15分钟后处理业务逻辑
-        scheduled.schedule(runAble, 15, TimeUnit.MINUTES);
+        scheduled.schedule(runAble, 60, TimeUnit.SECONDS);
         log.info("task#告警联动定时任务创建任务成功");
     }
 
@@ -148,10 +148,11 @@ public class LinkageModule {
     /**
      * 结束这个事件
      */
-    private void endThisEvent(String deviceCode) {
-        if (this.map.containsKey(deviceCode)) {
-            ScheduledExecutorService scheduled = this.map.get(deviceCode);
+    private void endThisEvent(String triggerDeviceCode) {
+        if (this.map.containsKey(triggerDeviceCode)) {
+            ScheduledExecutorService scheduled = this.map.get(triggerDeviceCode);
             scheduled.shutdown();
+            log.info("task#告警联动定时任务结束triggerDeviceCode:{}", triggerDeviceCode);
         }
     }
 
@@ -159,8 +160,8 @@ public class LinkageModule {
     /**
      * 检查任务是否已经关闭
      */
-    private boolean checkShutdown(String linkageDeviceCode) {
-        ScheduledExecutorService scheduledExecutorService = this.map.get(linkageDeviceCode);
+    private boolean checkShutdown(String triggerDeviceCode) {
+        ScheduledExecutorService scheduledExecutorService = this.map.get(triggerDeviceCode);
         if (null == scheduledExecutorService || scheduledExecutorService.isShutdown()) {
             return true;
         }
@@ -175,16 +176,20 @@ public class LinkageModule {
      */
     private void alarmCancelHandle(LinkageInfo linkageInfo) {
         String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
+        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
+        /**
+         * 检查延迟任务是否已经关闭
+         */
+        boolean isShutdown = checkShutdown(triggerDeviceCode);
+        //已经关闭的任务不再处理
+        if (isShutdown) return;
         //关风机
         controlLinkageDevice(linkageDeviceCode, 0);
-
-        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
         //删除联动信息
         repositoryModule.deleteLinkageInfo(triggerDeviceCode);
-
         //结束事件
         endThisEvent(triggerDeviceCode);
-        log.info("task#告警联动定时任务结束triggerDeviceCode:{}",triggerDeviceCode);
+
     }
 
     /**

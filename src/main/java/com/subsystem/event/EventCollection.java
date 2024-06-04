@@ -20,7 +20,7 @@ public class EventCollection {
     public void createAlarmEvent(SubSystemDefaultContext subSystemDefaultContext) {
         AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
         if (null == alarmInfo) return;
-        alarmEvent = new AlarmEvent(this, alarmInfo);
+        alarmEvent = new AlarmEvent(this, subSystemDefaultContext);
     }
 
     public void createLinkageEvent(SubSystemDefaultContext subSystemDefaultContext) {

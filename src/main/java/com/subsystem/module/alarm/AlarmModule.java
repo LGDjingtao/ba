@@ -49,7 +49,13 @@ public class AlarmModule {
      */
     @EventListener(classes = AlarmEvent.class)
     public void alarmEventListener(AlarmEvent alarmEvent) {
-        ResultBean receive = alarmCenterFeign.receive(alarmEvent.getAlarmInfo());
+        SubSystemDefaultContext subSystemDefaultContext = alarmEvent.getSubSystemDefaultContext();
+        Boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
+        //消警这个项目不做处理
+        if (!alarmOrAlarmCancel) return;
+        //todo 本地缓存告警信息 做告警信息清洗
+        AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
+        ResultBean receive = alarmCenterFeign.receive(alarmInfo);
         int code = receive.getCode();
         if (!NumberUtil.equals(code, 200)) {
             log.error("推送告警信息接口报错，code：{}", code);
@@ -102,7 +108,7 @@ public class AlarmModule {
     private void alarmHandle(SubSystemDefaultContext subSystemDefaultContext) {
         //告警还是消警
         boolean alarmOrAlarmCancel = alarmOrAlarmCancel(subSystemDefaultContext);
-
+        subSystemDefaultContext.setAlarmOrAlarmCancel(alarmOrAlarmCancel);
 
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String deviceCode = deviceInfo.getDeviceCode();
@@ -220,7 +226,7 @@ public class AlarmModule {
         String deviceCode = deviceInfo.getDeviceCode();
         DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
         Object obj = subSystemDefaultContext.getValue();
-        String value = JSONObject.toJSONString(obj) ;
+        String value = obj.toString();
         //报警策略
         String alarmStrategy = deviceAlarmType.getAlarmStrategy();
         //报警阈值

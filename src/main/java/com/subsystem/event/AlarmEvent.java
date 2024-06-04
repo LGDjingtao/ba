@@ -1,5 +1,6 @@
 package com.subsystem.event;
 
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.repository.mapping.AlarmInfo;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,10 +13,10 @@ import org.springframework.context.ApplicationEvent;
 @Setter
 public class AlarmEvent extends ApplicationEvent {
     //告警信息
-    private AlarmInfo alarmInfo;
+    private SubSystemDefaultContext subSystemDefaultContext;
 
-    public AlarmEvent(Object source, AlarmInfo alarmInfo) {
+    public AlarmEvent(Object source, SubSystemDefaultContext subSystemDefaultContext) {
         super(source);
-        this.alarmInfo = alarmInfo;
+        this.subSystemDefaultContext = subSystemDefaultContext;
     }
 }

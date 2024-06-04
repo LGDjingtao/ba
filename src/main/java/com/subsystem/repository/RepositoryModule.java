@@ -90,6 +90,8 @@ public class RepositoryModule {
      * @param key key
      */
     public void deleteLinkageInfo(String key) {
-        linkageInfoRepository.deleteById(key);
+        if (linkageInfoRepository.existsById(key)) {
+            linkageInfoRepository.deleteById(key);
+        }
     }
 }

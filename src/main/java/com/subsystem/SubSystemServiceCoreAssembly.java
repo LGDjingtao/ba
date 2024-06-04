@@ -8,6 +8,7 @@ import com.subsystem.common.SpecialFieldsEnum;
 import com.subsystem.entity.Metric;
 import com.subsystem.entity.MqttPayload;
 import com.subsystem.event.EventCollection;
+import com.subsystem.event.LinkageEvent;
 import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.alarm.AlarmModule;
 import com.subsystem.module.cache.CaffeineCacheModule;

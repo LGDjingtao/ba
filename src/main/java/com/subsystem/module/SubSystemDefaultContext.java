@@ -17,6 +17,8 @@ public class SubSystemDefaultContext {
     private DeviceInfo deviceInfo;
     //告警信息
     private AlarmInfo alarmInfo;
+    //告警还是消警 true-告警 false-消警
+    private  Boolean alarmOrAlarmCancel;
     //联动信息
     private LinkageInfo linkageInfo;
     //物模型别名
