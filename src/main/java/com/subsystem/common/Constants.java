@@ -87,6 +87,9 @@ public class Constants {
      * 时间格式
      */
     public static String Time_Format = "yyyy-MM-dd HH:mm:ss";
-
+    /**
+     * 1分钟 毫秒为单位
+     */
+    public static final long ONE_MINS = 1000 * 60;
 
 }

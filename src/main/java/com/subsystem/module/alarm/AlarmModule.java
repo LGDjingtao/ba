@@ -28,6 +28,8 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,6 +50,11 @@ public class AlarmModule {
     AlarmCenterFeign alarmCenterFeign;
 
     /**
+     * 告警<设备code，告警别名，上次告警时间>
+     */
+    private final static ConcurrentHashMap<String, ConcurrentHashMap<String, Long>> alarmMark = new ConcurrentHashMap();
+
+    /**
      * 监听告警事件
      *
      * @param alarmEvent 告警事件
@@ -55,10 +62,13 @@ public class AlarmModule {
     @EventListener(classes = AlarmEvent.class)
     public void alarmEventListener(AlarmEvent alarmEvent) {
         SubSystemDefaultContext subSystemDefaultContext = alarmEvent.getSubSystemDefaultContext();
+        initAlarmRecord(subSystemDefaultContext);
         Boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
         //消警情况广西这个项目不做处理
         if (!alarmOrAlarmCancel) return;
-        //todo 为了减少告警 消警前不推送告警信息
+        //判断是不是重复告警 true-重复告警 false-非重复告警
+        if (isRepeatedAlarm(subSystemDefaultContext)) return;
+
         AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
         //若是告警不考虑顺序问题 这个可以异步推送
         ResultBean receive = alarmCenterFeign.receive(alarmInfo);
@@ -66,6 +76,49 @@ public class AlarmModule {
         if (!NumberUtil.equals(code, 200)) {
             log.error("推送告警信息接口报错，code：{}", code);
         }
+        log.error("推送告警信息成功{}", JSONObject.toJSONString(alarmInfo));
+    }
+
+    /**
+     * 判断是不是重复告警 true-重复告警 false-非重复告警
+     *
+     * @return
+     */
+    private boolean isRepeatedAlarm(SubSystemDefaultContext subSystemDefaultContext) {
+        String deviceCode = subSystemDefaultContext.getDeviceInfo().getDeviceCode();
+        String alias = subSystemDefaultContext.getAlias();
+        ConcurrentHashMap<String, Long> alarmMarkMap = alarmMark.get(deviceCode);
+        Long lastAlarmTimeStamp = alarmMarkMap.get(alias);
+        if (!lastAlarmTimeStamp.equals(Long.MIN_VALUE)) return true;
+        long realTimeStamp = new org.joda.time.DateTime().getMillis();
+        //连续告警小于1分钟 不告警这个按需求加
+        //long timeDifference = realTimeStamp - lastAlarmTimeStamp;
+        //if (Constants.ONE_MINS < timeDifference) return true;
+        //非重复告警 记录告警时间戳
+        alarmMarkMap.put(alias, realTimeStamp);
+        return false;
+    }
+
+    /**
+     * 初始化记录告警数据
+     *
+     * @param subSystemDefaultContext 上下文
+     */
+    private static void initAlarmRecord(SubSystemDefaultContext subSystemDefaultContext) {
+        Boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
+        String deviceCode = subSystemDefaultContext.getDeviceInfo().getDeviceCode();
+        String alias = subSystemDefaultContext.getAlias();
+        //如果缓存没有该设备告警数据就初始化一个该设备缓存
+        alarmMark.computeIfAbsent(deviceCode, DEVICECODE -> {
+            ConcurrentHashMap<String, Long> node = new ConcurrentHashMap<>();
+            node.put(alias, Long.MIN_VALUE);
+            return node;
+        });
+        //如果有该设备缓存 消警情况-重置该设备这个物模型的告警时间
+        alarmMark.computeIfPresent(deviceCode, (DEVICECODE, NODE) -> {
+            if (!alarmOrAlarmCancel) NODE.put(alias, Long.MIN_VALUE);
+            return NODE;
+        });
     }
 
 
