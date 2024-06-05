@@ -85,8 +85,6 @@ public class AlarmModule {
             repositoryModule.saveAlarmFiledInfo(alarmInfo);
             return;
         }
-        alarmInfo.setAlarmid(IdUtil.randomUUID());
-        repositoryModule.saveAlarmFiledInfo(alarmInfo);
         log.info("推送告警信息成功{}", JSONObject.toJSONString(alarmInfo));
     }
 

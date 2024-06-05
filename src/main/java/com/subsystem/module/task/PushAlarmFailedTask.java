@@ -24,10 +24,10 @@ public class PushAlarmFailedTask extends ScheduleTask {
     RepositoryModule repositoryModule;
     AlarmCenterFeign alarmCenterFeign;
 
-    @Scheduled(cron = "0/1 0 * * * ? ")
+    @Scheduled(cron = "0 0/1 * * * ? ")
     @Override
     public void run() {
-        log.info("定时推送 告警事件推送失败的事件");
+        //log.info("定时推送 告警事件推送失败的事件");
         List<AlarmInfo> alarmFiledInfo = repositoryModule.findAlarmFiledInfo();
         alarmFiledInfo.forEach(this::pushAlarmData);
     }
