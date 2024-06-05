@@ -1,14 +1,14 @@
 package com.subsystem;
 
-import com.subsystem.module.mqtt.prop.MqttProperties;
-import com.subsystem.porp.BAProperties;
+import com.subsystem.core.module.mqtt.prop.MqttProperties;
+import com.subsystem.core.porp.BAProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
 @EnableDiscoveryClient
 @EnableFeignClients
 @EnableScheduling

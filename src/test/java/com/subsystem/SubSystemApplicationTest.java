@@ -1,19 +1,17 @@
 package com.subsystem;
 
 import com.alibaba.fastjson.JSON;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.subsystem.common.Constants;
-import com.subsystem.module.SubSystemDefaultContext;
-import com.subsystem.module.cache.CaffeineCacheModule;
-import com.subsystem.module.redis.StringRedisModule;
-import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
-import com.subsystem.repository.RepositoryModule;
-import com.subsystem.repository.mapping.AlarmInfo;
+import com.subsystem.core.common.Constants;
+import com.subsystem.core.module.SubSystemDefaultContext;
+import com.subsystem.core.module.cache.CaffeineCacheModule;
+import com.subsystem.core.module.redis.StringRedisModule;
+import com.subsystem.core.module.staticdata.SubSystemStaticDataDefaultModule;
+import com.subsystem.core.repository.RepositoryModule;
+import com.subsystem.core.repository.mapping.AlarmInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
 import java.util.List;
