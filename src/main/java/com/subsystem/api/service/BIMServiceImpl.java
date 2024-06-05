@@ -89,14 +89,8 @@ public class BIMServiceImpl {
         List<DeviceInfo> deviceInfosDJSJ = getDeviceInfos(Common.DJSJ);
         List<DeviceInfo> deviceInfosSJSJ = getDeviceInfos(Common.SJSJ);
         List<Map<String, Object>> result = new ArrayList<>();
-        for (DeviceInfo deviceInfo : deviceInfosDJSJ) {
-            getJSJDAta(result, deviceInfo);
-        }
-
-        for (DeviceInfo deviceInfo : deviceInfosSJSJ) {
-            getJSJDAta(result, deviceInfo);
-        }
-
+        for (DeviceInfo deviceInfo : deviceInfosDJSJ) getJSJDAta(result, deviceInfo);
+        for (DeviceInfo deviceInfo : deviceInfosSJSJ) getJSJDAta(result, deviceInfo);
         return result;
     }
 
@@ -107,28 +101,20 @@ public class BIMServiceImpl {
         map.put("data", "标准液位");
         Object o = redisUtil.get(Common.DEVICE_REPORT + deviceCode);
         JSONObject jsonObject = new JSONObject();
-        if (!ObjectUtil.isEmpty(o)) {
-            jsonObject = JSONUtil.parseObj(o);
-        }
+        if (!ObjectUtil.isEmpty(o)) jsonObject = JSONUtil.parseObj(o);
+
         //在线状态
         Integer ONLINE = jsonObject.getInt("ONLINE");
-        if (NumberUtil.equals(ONLINE, 0)) {
-            return;
-        }
-        {
-            //低液位报警
-            Integer code = jsonObject.getInt("LL");
-            if (NumberUtil.equals(code, 1)) {
-                map.put("data", "液位过低");
-            }
-        }
-        {
-            //高液位报警
-            Integer code = jsonObject.getInt("HL");
-            if (NumberUtil.equals(code, 1)) {
-                map.put("data", "液位过高");
-            }
-        }
+        if (null == ONLINE || NumberUtil.equals(ONLINE, 0)) return;
+
+        //低液位报警
+        Integer LL = jsonObject.getInt("LL");
+        if (null != LL && NumberUtil.equals(LL, 1)) map.put("data", "液位过低");
+
+        //高液位报警
+        Integer HL = jsonObject.getInt("HL");
+        if (null != LL && NumberUtil.equals(HL, 1)) map.put("data", "液位过高");
+
         result.add(map);
     }
 
