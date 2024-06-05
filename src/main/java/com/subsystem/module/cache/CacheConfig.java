@@ -68,10 +68,10 @@ public class CacheConfig {
                         .initialCapacity(2000)//后面可以考虑将这些值放入配置文件
                         .maximumSize(10000)
                         .removalListener((key, value, cause) -> {
-                            log.info("SYN_REDIS失效");
-                            log.info("key:{}", key);
-                            log.info("value:{}", value);
-                            log.info("cause:{}", cause);
+                            log.debug("SYN_REDIS失效");
+                            log.debug("key:{}", key);
+                            log.debug("value:{}", value);
+                            log.debug("cause:{}", cause);
                         })
                         .build()));
         list.add(new CaffeineCache(Constants.LOCAL,

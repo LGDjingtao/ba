@@ -4,11 +4,15 @@ package com.subsystem.repository;
 import com.alibaba.fastjson.JSONObject;
 import com.subsystem.common.Constants;
 import com.subsystem.module.SubSystemDefaultContext;
+import com.subsystem.repository.mapping.AlarmInfo;
 import com.subsystem.repository.mapping.LinkageInfo;
 import com.subsystem.repository.mapping.SyncFailedData;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,6 +26,7 @@ import java.util.List;
 public class RepositoryModule {
     SyncFailedDataRepository syncFailedDataRepository;
     LinkageInfoRepository linkageInfoRepository;
+    AlarmInfoRepository alarmInfoRepository;
 
     /**
      * 更新异常数据到数据库
@@ -99,5 +104,33 @@ public class RepositoryModule {
         if (linkageInfoRepository.existsById(key)) {
             linkageInfoRepository.deleteById(key);
         }
+    }
+
+    /**
+     * 存入告警信息
+     */
+    public void saveAlarmFiledInfo(AlarmInfo alarmInfo) {
+        alarmInfoRepository.save(alarmInfo);
+    }
+
+    /**
+     * 存入获取失败的信息 每次只查询50条
+     *
+     * @return
+     */
+    public List<AlarmInfo> findAlarmFiledInfo() {
+        Sort sort = Sort.by(Sort.Order.desc("alarmTime"));
+        PageRequest pageRequest = PageRequest.of(0, 50, sort);
+        Page<AlarmInfo> all = alarmInfoRepository.findAll(pageRequest);
+        return all.getContent();
+    }
+
+    /**
+     * 删除获取失败的信息
+     *
+     * @return
+     */
+    public void deleteAlarmFiledInfoById(String id) {
+        alarmInfoRepository.deleteById(id);
     }
 }

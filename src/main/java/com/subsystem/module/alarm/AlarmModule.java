@@ -1,16 +1,18 @@
 package com.subsystem.module.alarm;
 
 import cn.hutool.core.date.DateTime;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.subsystem.common.Constants;
-import com.subsystem.feign.AlarmCenterFeign;
-import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.entity.ResultBean;
 import com.subsystem.event.AlarmEvent;
+import com.subsystem.feign.AlarmCenterFeign;
 import com.subsystem.feign.AssetsFeign;
+import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
+import com.subsystem.repository.RepositoryModule;
 import com.subsystem.repository.mapping.AlarmInfo;
 import com.subsystem.repository.mapping.DeviceAlarmType;
 import com.subsystem.repository.mapping.DeviceFaultType;
@@ -29,7 +31,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,6 +49,10 @@ public class AlarmModule {
      * 告警服务接口
      */
     AlarmCenterFeign alarmCenterFeign;
+    /**
+     * 数据库模块
+     */
+    RepositoryModule repositoryModule;
 
     /**
      * 告警<设备code，告警别名，上次告警时间>
@@ -75,8 +80,14 @@ public class AlarmModule {
         int code = receive.getCode();
         if (!NumberUtil.equals(code, 200)) {
             log.error("推送告警信息接口报错，code：{}", code);
+            //保存推送失败的告警信息 然后定时推送
+            alarmInfo.setAlarmid(IdUtil.randomUUID());
+            repositoryModule.saveAlarmFiledInfo(alarmInfo);
+            return;
         }
-        log.error("推送告警信息成功{}", JSONObject.toJSONString(alarmInfo));
+        alarmInfo.setAlarmid(IdUtil.randomUUID());
+        repositoryModule.saveAlarmFiledInfo(alarmInfo);
+        log.info("推送告警信息成功{}", JSONObject.toJSONString(alarmInfo));
     }
 
     /**

@@ -7,10 +7,13 @@ import com.subsystem.module.SubSystemDefaultContext;
 import com.subsystem.module.cache.CaffeineCacheModule;
 import com.subsystem.module.redis.StringRedisModule;
 import com.subsystem.module.staticdata.SubSystemStaticDataDefaultModule;
+import com.subsystem.repository.RepositoryModule;
+import com.subsystem.repository.mapping.AlarmInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -146,6 +149,15 @@ public class SubSystemApplicationTest {
         //caffeineCacheModule.setLinkagCacheValue3(subSystemDefaultContext);
         System.out.println();
 
+    }
+
+    @Resource
+    RepositoryModule repositoryModule;
+
+    @Test
+    void test_alarmFiledValid() {
+        List<AlarmInfo> alarmFiledInfo = repositoryModule.findAlarmFiledInfo();
+        System.out.println("tset");
     }
 
 

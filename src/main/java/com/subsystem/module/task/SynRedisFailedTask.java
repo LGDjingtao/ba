@@ -24,7 +24,7 @@ public class SynRedisFailedTask extends ScheduleTask {
     //事件驱动模块
     ApplicationContext eventDrivenModule;
 
-    @Scheduled(cron = "0/1 0 * * * ? ")
+    @Scheduled(cron = "0 0/1 * * * ? ")
     @Override
     public void run() {
         Cache<Object, Object> synRedisFailedCache = caffeineCacheModule.getSynRedisFailedCache();
