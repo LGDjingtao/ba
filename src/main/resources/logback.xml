@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true" scanPeriod="1 seconds">
+
+    <contextName>logback</contextName>
+    <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+    <property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-3level %logger{50} - %msg %n"/>
+    <property name="pattern-color" value="%gray(%d{yyyy-MM-dd HH:mm:ss}) [%thread] %highlight(%-5level) %green(%logger{50}) - %highlight(%msg) %n"/>
+    <property name="LOG_PATH" value="./logs/basys"/>
+    <property name="MAX_HISTORY_DAY" value="15"/>
+    <property name="MAX_FILE_SIZE" value="30MB"/>
+
+    <!-- 控制台输出 -->
+    <!-- 控制台输出-带颜色 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern-color}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 基于大小策略的文件输出 -->
+    <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名%i指定索引-->
+            <!-- LOG_PATH是上面配置的目录， %d是日期，%i是文件的序列号，比如文件大小超过10M后，就会创建i+1日志文件 -->
+            <fileNamePattern>${LOG_PATH}/basys.%d.%i.log</fileNamePattern>
+            <!--文件大小10M 超过创建新文件-->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <maxHistory>${MAX_HISTORY_DAY}</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
+    
+    
+    <!-- 基于日志等级的日志输出策略-->
+
+    <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/info/basys_info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 文件名称 -->
+            <fileNamePattern>${LOG_PATH}/info/basys_info.%d.%i.log
+            </fileNamePattern>
+            <!-- 文件最大保存历史数量 -->
+            <MaxHistory>30</MaxHistory>
+            <!--文件大小10M 超过创建新文件-->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <maxHistory>${MAX_HISTORY_DAY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--  warning  -->
+    <appender name="warnAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/warn/basys_warn.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 文件名称 -->
+            <fileNamePattern>${LOG_PATH}/warn/basys_warn.%d.%i.log
+            </fileNamePattern>
+            <!-- 文件最大保存历史数量 -->
+            <MaxHistory>30</MaxHistory>
+            <!--文件大小10M 超过创建新文件-->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <maxHistory>${MAX_HISTORY_DAY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/error/basys_error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 文件名称 -->
+            <fileNamePattern>${LOG_PATH}/error/basys_error.%d.%i.log
+            </fileNamePattern>
+            <!-- 文件最大保存历史数量 -->
+            <MaxHistory>30</MaxHistory>
+            <!--文件大小10M 超过创建新文件-->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <maxHistory>${MAX_HISTORY_DAY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOG-FILE"/>
+        <appender-ref ref="errorAppender"/>
+    </root>
+
+
+</configuration>

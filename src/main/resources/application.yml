@@ -94,3 +94,7 @@ mqtt:
 ba:
   topic: /GATEWAY/BA2/GXGAT/command
   linkageTaskTime: 5
+
+logging:
+  level:
+    root: info
