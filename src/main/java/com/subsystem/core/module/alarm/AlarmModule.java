@@ -12,6 +12,7 @@ import com.subsystem.core.event.AlarmEvent;
 import com.subsystem.core.feign.AlarmCenterFeign;
 import com.subsystem.core.feign.AssetsFeign;
 import com.subsystem.core.module.SubSystemDefaultContext;
+import com.subsystem.core.module.cache.CaffeineCacheModule;
 import com.subsystem.core.module.staticdata.SubSystemStaticDataDefaultModule;
 import com.subsystem.core.repository.RepositoryModule;
 import com.subsystem.core.repository.mapping.AlarmInfo;
@@ -54,6 +55,10 @@ public class AlarmModule {
      * 数据库模块
      */
     RepositoryModule repositoryModule;
+    /**
+     * 缓存模块
+     */
+    CaffeineCacheModule caffeineCacheModule;
 
     /**
      * 告警<设备code，告警别名，上次告警时间>
@@ -77,13 +82,19 @@ public class AlarmModule {
 
         AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
         //若是告警不考虑顺序问题 这个可以异步推送
-        ResultBean receive = alarmCenterFeign.receive(alarmInfo);
-        int code = receive.getCode();
-        if (!NumberUtil.equals(code, 200)) {
-            log.error("推送告警信息接口报错，code：{}", code);
+        ResultBean receive = null;
+        try {
+            receive = alarmCenterFeign.receive(alarmInfo);
+            int code = receive.getCode();
+            if (!NumberUtil.equals(code, 200)) {
+                log.error("推送告警信息接口报错，code：{}", code);
+                throw new Exception("推送告警信息接口报错");
+            }
+        } catch (Exception e) {
             //保存推送失败的告警信息 然后定时推送
             alarmInfo.setAlarmid(IdUtil.randomUUID());
             repositoryModule.saveAlarmFiledInfo(alarmInfo);
+            log.error("rpc调用报错", e);
             return;
         }
         log.info("推送告警信息成功{}", JSONObject.toJSONString(alarmInfo));
@@ -364,7 +375,7 @@ public class AlarmModule {
 
     private String getAlarmStrategyValue(String deviceCode, DeviceAlarmType deviceAlarmType, String alarmStrategy, String alarmStrategyValue) {
         try {
-            ResultBean<List<ThresholdVo>> receive = assetsFeign.receive(deviceCode);
+            ResultBean<List<ThresholdVo>> receive = caffeineCacheModule.getThreshold(deviceCode);
             int code = receive.getCode();
             if (!NumberUtil.equals(code, 0)) {
                 log.error("获取阈值接口报错，code：{}", code);
@@ -381,7 +392,7 @@ public class AlarmModule {
                 alarmStrategyValue = thresholdVo.getMinValue();
             }
         } catch (Exception e) {
-            log.error("设备{}使用默认阈值：{}",deviceCode, alarmStrategyValue);
+            log.error("设备{}使用默认阈值：{}", deviceCode, alarmStrategyValue);
         }
         return alarmStrategyValue;
     }

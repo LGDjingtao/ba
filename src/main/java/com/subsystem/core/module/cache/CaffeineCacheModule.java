@@ -3,7 +3,10 @@ package com.subsystem.core.module.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.subsystem.core.common.Constants;
+import com.subsystem.core.entity.ResultBean;
+import com.subsystem.core.entity.ThresholdVo;
 import com.subsystem.core.event.SynRedisEvent;
+import com.subsystem.core.feign.AssetsFeign;
 import com.subsystem.core.module.redis.StringRedisModule;
 import com.subsystem.core.repository.RepositoryModule;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +20,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -31,8 +36,8 @@ public class CaffeineCacheModule {
     CaffeineCacheModule caffeineCacheModule;
     @Resource
     RepositoryModule repositoryModule;
-
-
+    @Resource
+    AssetsFeign assetsFeign;
     /**
      * 通过key 获取同步缓存
      */
@@ -165,6 +170,23 @@ public class CaffeineCacheModule {
         String synRedisFailedCacheValue = caffeineCacheModule.getSynRedisFailedCacheValue(key);
         if (null == synRedisFailedCacheValue) return;
         repositoryModule.deleteSyncFailedDataByKey(key);
+    }
+
+
+    /**
+     * 通过key 获取同步缓存
+     */
+    @Cacheable(cacheNames = Constants.THRESHOLD_CACHE, key = "#key")
+    public ResultBean<List<ThresholdVo>> getThreshold(String key) {
+        List<ThresholdVo> v  = new ArrayList<>();
+        ThresholdVo t = new ThresholdVo();
+        t.setMaxValue("450");
+        t.setMinValue("1");
+        t.setParamModelCode("CO_YZ");
+        v.add(t);
+        log.warn("重新获取阈值");
+        return ResultBean.success(0,"",v);
+         //assetsFeign.receive(key);
     }
 
 

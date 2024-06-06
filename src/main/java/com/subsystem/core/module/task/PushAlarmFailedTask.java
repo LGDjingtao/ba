@@ -2,6 +2,7 @@ package com.subsystem.core.module.task;
 
 
 import cn.hutool.core.util.NumberUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.subsystem.core.entity.ResultBean;
 import com.subsystem.core.feign.AlarmCenterFeign;
 import com.subsystem.core.repository.RepositoryModule;
@@ -38,15 +39,20 @@ public class PushAlarmFailedTask extends ScheduleTask {
      * @param alarmInfo 告警数据
      */
     private void pushAlarmData(AlarmInfo alarmInfo) {
-        String alarmid = alarmInfo.getAlarmid();
-        alarmInfo.setAlarmid(null);
-        ResultBean receive = alarmCenterFeign.receive(alarmInfo);
-        int code = receive.getCode();
-        if (!NumberUtil.equals(code, 200)) {
-            log.error("推送告警信息接口报错，code：{}", code);
-            return;
+        try {
+            String alarmid = alarmInfo.getAlarmid();
+            alarmInfo.setAlarmid(null);
+            ResultBean receive = alarmCenterFeign.receive(alarmInfo);
+            int code = receive.getCode();
+            if (!NumberUtil.equals(code, 200)) {
+                log.error("推送告警信息接口报错，code：{}", code);
+                return;
+            }
+            repositoryModule.deleteAlarmFiledInfoById(alarmid);
+        } catch (Exception e) {
+            log.info("失败告警信息重新推送失败:{}", JSONObject.toJSONString(alarmInfo), e);
         }
-        repositoryModule.deleteAlarmFiledInfoById(alarmid);
+
     }
 
 

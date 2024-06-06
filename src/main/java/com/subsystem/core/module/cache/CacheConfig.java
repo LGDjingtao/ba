@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Configuration
@@ -83,6 +84,18 @@ public class CacheConfig {
                 Caffeine.newBuilder()
                         .initialCapacity(20)
                         .maximumSize(10000)
+                        .build()));
+        list.add(new CaffeineCache(Constants.THRESHOLD_CACHE,
+                Caffeine.newBuilder()
+                        .initialCapacity(20)
+                        .maximumSize(10000)
+                        .removalListener((key, value, cause) -> {
+                            log.debug("THRESHOLD_CACHE失效");
+                            log.debug("key:{}", key);
+                            log.debug("value:{}", value);
+                            log.debug("cause:{}", cause);
+                        })
+                        .expireAfterWrite(1, TimeUnit.MINUTES)
                         .build()));
         cacheManager.setCaches(list);
         return cacheManager;

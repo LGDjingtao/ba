@@ -26,6 +26,10 @@ public class Constants {
      */
     public static final String SYN_REDIS_FAILED = "SYN_FAILED";
     /**
+     * 阈值
+     */
+    public static final String THRESHOLD_CACHE = "THRESHOLD";
+    /**
      * 联动
      */
     public static final String LINKAGE = "LINKAGE";
