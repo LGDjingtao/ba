@@ -102,7 +102,44 @@ public class MqttInboundConfig {
      */
     @Bean
     @ServiceActivator(inputChannel = "inBoundChannel_NY")
-    public MessageHandler handler() {
+    public MessageHandler handlerNY() {
+        return (message) -> mqttInboundReceiveHandle.handleMessage(message);
+    }
+
+
+    /**
+     * 入站管道
+     */
+    @Bean(name = "inBoundChannel_DL")
+    public MessageChannel mqttInboundChannelDL() {
+        return new DirectChannel();
+    }
+
+    /**
+     * 入站管道适配器
+     */
+    @Bean("mqttPahoMessageDrivenChannelAdapter_DL" )
+    public MqttPahoMessageDrivenChannelAdapter mqttPahoMessageDrivenChannelAdapterDL(
+            @Qualifier("mqttPahoClientFactory") MqttPahoClientFactory mqttPahoClientFactory,
+            @Qualifier("inBoundChannel_DL") MessageChannel messageChannel
+    ) {
+        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(
+                this.mqttProperties.getInboundClientIdDL(),
+                mqttPahoClientFactory,
+                this.mqttProperties.getInboundGatewayTopicDL());
+        adapter.setCompletionTimeout(this.mqttProperties.getTimeout());
+        adapter.setConverter(new DefaultPahoMessageConverter());  // 编解码
+        adapter.setQos(2);
+        adapter.setOutputChannel(messageChannel);
+        return adapter;
+    }
+
+    /**
+     * 入站消息处理器
+     */
+    @Bean
+    @ServiceActivator(inputChannel = "inBoundChannel_DL")
+    public MessageHandler handlerDL() {
         return (message) -> mqttInboundReceiveHandle.handleMessage(message);
     }
 
