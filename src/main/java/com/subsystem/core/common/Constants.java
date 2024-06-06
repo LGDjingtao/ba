@@ -12,7 +12,10 @@ public class Constants {
     public static final int EXPIRES_10_MIN = 10 * 60;
     public static final int EXPIRES_15_MIN = 15 * 60;
     public static final int EXPIRES_15_DAYS = 60 * 60 * 24 * 15;
-
+    /**
+     * 阈值缓存失效时间
+     */
+    public static final int THRESHOLD_CACHE_EXPIRES = 30;
     /**
      * 同步缓存
      */

@@ -178,15 +178,8 @@ public class CaffeineCacheModule {
      */
     @Cacheable(cacheNames = Constants.THRESHOLD_CACHE, key = "#key")
     public ResultBean<List<ThresholdVo>> getThreshold(String key) {
-        List<ThresholdVo> v  = new ArrayList<>();
-        ThresholdVo t = new ThresholdVo();
-        t.setMaxValue("450");
-        t.setMinValue("1");
-        t.setParamModelCode("CO_YZ");
-        v.add(t);
-        log.warn("重新获取阈值");
-        return ResultBean.success(0,"",v);
-         //assetsFeign.receive(key);
+        log.warn("失效时间{}s,rpc::重新获取阈值", Constants.THRESHOLD_CACHE_EXPIRES);
+        return assetsFeign.receive(key);
     }
 
 

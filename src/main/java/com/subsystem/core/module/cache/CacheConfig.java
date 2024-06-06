@@ -95,7 +95,7 @@ public class CacheConfig {
                             log.debug("value:{}", value);
                             log.debug("cause:{}", cause);
                         })
-                        .expireAfterWrite(1, TimeUnit.MINUTES)
+                        .expireAfterWrite(Constants.THRESHOLD_CACHE_EXPIRES, TimeUnit.SECONDS)
                         .build()));
         cacheManager.setCaches(list);
         return cacheManager;
