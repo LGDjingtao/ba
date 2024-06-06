@@ -143,4 +143,41 @@ public class MqttInboundConfig {
         return (message) -> mqttInboundReceiveHandle.handleMessage(message);
     }
 
+
+    /**
+     * 入站管道
+     */
+    @Bean(name = "inBoundChannel_HJ")
+    public MessageChannel mqttInboundChannelHJ() {
+        return new DirectChannel();
+    }
+
+    /**
+     * 入站管道适配器
+     */
+    @Bean("mqttPahoMessageDrivenChannelAdapter_HJ" )
+    public MqttPahoMessageDrivenChannelAdapter mqttPahoMessageDrivenChannelAdapterHJ(
+            @Qualifier("mqttPahoClientFactory") MqttPahoClientFactory mqttPahoClientFactory,
+            @Qualifier("inBoundChannel_HJ") MessageChannel messageChannel
+    ) {
+        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(
+                this.mqttProperties.getInboundClientIdHJ(),
+                mqttPahoClientFactory,
+                this.mqttProperties.getInboundGatewayTopicHJ());
+        adapter.setCompletionTimeout(this.mqttProperties.getTimeout());
+        adapter.setConverter(new DefaultPahoMessageConverter());  // 编解码
+        adapter.setQos(2);
+        adapter.setOutputChannel(messageChannel);
+        return adapter;
+    }
+
+    /**
+     * 入站消息处理器
+     */
+    @Bean
+    @ServiceActivator(inputChannel = "inBoundChannel_HJ")
+    public MessageHandler handlerHJ() {
+        return (message) -> mqttInboundReceiveHandle.handleMessage(message);
+    }
+
 }
