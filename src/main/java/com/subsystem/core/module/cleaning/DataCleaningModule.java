@@ -2,6 +2,7 @@ package com.subsystem.core.module.cleaning;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.subsystem.core.common.Constants;
 import com.subsystem.core.module.SubSystemDefaultContext;
 import com.subsystem.core.module.alarm.AlarmModule;
 import com.subsystem.core.module.cache.CaffeineCacheModule;
@@ -11,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+
+import java.text.DecimalFormat;
 
 /**
  * 数据清洗模块
@@ -59,11 +62,49 @@ public class DataCleaningModule {
      * @param targetCacheData         老缓存
      * @return 新缓存数据
      */
-    private static String mergeData(SubSystemDefaultContext subSystemDefaultContext, String targetCacheData) {
+    private  String mergeData(SubSystemDefaultContext subSystemDefaultContext, String targetCacheData) {
         JSONObject realTimeDataObj = JSON.parseObject(targetCacheData);
         realTimeDataObj.put(subSystemDefaultContext.getAlias(), subSystemDefaultContext.getValue());
+        specialTreatment(realTimeDataObj, subSystemDefaultContext);
         String realTimeData = realTimeDataObj.toJSONString();
         return realTimeData;
+    }
+
+
+
+    /**
+     * 特殊处理
+     * <p>
+     * 例如3相表 EAP值需要相加
+     */
+    private void specialTreatment(JSONObject physicalModel, SubSystemDefaultContext subSystemDefaultContext) {
+        String alias = subSystemDefaultContext.getAlias();
+        String key = subSystemDefaultContext.getKey();
+        try {
+            if (alias.equals(Constants.EPA1) || alias.equals(Constants.EPA2) || alias.equals(Constants.EPA3)) {
+                String EPA1Value = physicalModel.getString(Constants.EPA1);
+                Double temp = 0d;
+                if (null != EPA1Value) {
+                    Double aDouble = Double.valueOf(EPA1Value);
+                    temp += aDouble;
+                }
+                String EPA2Value = physicalModel.getString(Constants.EPA2);
+                if (null != EPA2Value) {
+                    Double aDouble = Double.valueOf(EPA2Value);
+                    temp += aDouble;
+                }
+                String EPA3Value = physicalModel.getString(Constants.EPA3);
+                if (null != EPA3Value) {
+                    Double aDouble = Double.valueOf(EPA3Value);
+                    temp += aDouble;
+                }
+                DecimalFormat df = new DecimalFormat("#.##");
+                String formattedNumber = df.format(temp);
+                physicalModel.put(Constants.ALL_EPA, formattedNumber);
+            }
+        } catch (Exception e) {
+            log.error("三相电表{}数值相加失败！", key);
+        }
     }
 
     /**
@@ -75,8 +116,8 @@ public class DataCleaningModule {
         JSONObject targetObj = JSON.parseObject(targetCacheData);
         String alias = subSystemDefaultContext.getAlias();
         if (targetObj.containsKey(alias)) {
-            Object cacheObj = targetObj.get(alias);
-            Object outObj = subSystemDefaultContext.getValue();
+            String cacheObj = targetObj.getString(alias);
+            String outObj = subSystemDefaultContext.getValue();
             return ObjectUtils.nullSafeEquals(cacheObj, outObj);
         }
         return false;

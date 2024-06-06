@@ -36,7 +36,7 @@ public class SubSystemDefaultContext {
     /**
      * 实时物模型值
      */
-    private Object value;
+    private String value;
     /**
      * 接受到数据时间
      */

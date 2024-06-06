@@ -240,7 +240,7 @@ public class AlarmModule {
         if (null == deviceFaultType) return;
         //获取故障描述信息
         String deviceFaultMessage = deviceFaultType.getDeviceFaultMessage();
-        Object value = subSystemDefaultContext.getValue();
+        String value = subSystemDefaultContext.getValue();
         JSONObject physicalModel = JSONObject.parseObject(subSystemDefaultContext.getRealTimeData());
         String devicefaultMessageCaChe = physicalModel.getString(Constants.FAULT_MSG);
         if (StringUtils.isEmpty(devicefaultMessageCaChe)) devicefaultMessageCaChe = "";
@@ -303,8 +303,7 @@ public class AlarmModule {
         DeviceInfo deviceInfo = subSystemDefaultContext.getDeviceInfo();
         String deviceCode = deviceInfo.getDeviceCode();
         DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
-        Object obj = subSystemDefaultContext.getValue();
-        String value = obj.toString();
+        String value = subSystemDefaultContext.getValue();
         //报警策略
         String alarmStrategy = deviceAlarmType.getAlarmStrategy();
         //报警阈值
@@ -382,7 +381,7 @@ public class AlarmModule {
                 alarmStrategyValue = thresholdVo.getMinValue();
             }
         } catch (Exception e) {
-            log.error("使用默认阈值：{}", alarmStrategyValue);
+            log.error("设备{}使用默认阈值：{}",deviceCode, alarmStrategyValue);
         }
         return alarmStrategyValue;
     }
@@ -421,21 +420,10 @@ public class AlarmModule {
     private static void setOtherAlarmInfo(AlarmInfo alarmInfo, DeviceInfo deviceInfo, DeviceAlarmType deviceAlarmType, SubSystemDefaultContext subSystemDefaultContext) {
         alarmInfo.setAlarmLocation(deviceInfo.getDeviceLocationName());
         alarmInfo.setAlarmDeviceType(deviceInfo.getDeviceTypeName());
-        Object value = subSystemDefaultContext.getValue();
-        //todo 阈值 还需要设计
-        String threshold = "";
-        try {
-            if (null != value) {
-                if (!Boolean.FALSE.equals(value) && !Boolean.TRUE.equals(value)) {
-                    threshold = JSON.toJSONString(value);
-                }
-            }
-        } catch (Exception e) {
-            log.error("阈值解析失败");
-        }
+        String value = subSystemDefaultContext.getValue();
         String alarmMessage = deviceAlarmType.getAlarmMessage(deviceInfo.getDeviceCode());
         StringBuilder stringBuilder = new StringBuilder(alarmMessage);
-        String alarmContent = replacementInfo(stringBuilder, Constants.THRESHOLD, threshold);
+        String alarmContent = replacementInfo(stringBuilder, Constants.THRESHOLD, value);
         alarmInfo.setAlarmCategory(deviceAlarmType.getAlarmContent());
         alarmInfo.setAlarmContent(alarmContent);
         alarmInfo.setLevel(Integer.valueOf(deviceAlarmType.getAlarmLevel()));
@@ -453,6 +441,7 @@ public class AlarmModule {
     public static String replacementInfo(StringBuilder stringBuilder, String keyword, String before) {
         //字符第一次出现的位置
         int index = stringBuilder.indexOf(keyword);
+        if (-1 == index) return stringBuilder.toString();
         stringBuilder.insert(index, before);
         return stringBuilder.toString();
     }

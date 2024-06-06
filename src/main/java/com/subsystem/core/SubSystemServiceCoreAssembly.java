@@ -123,7 +123,7 @@ public class SubSystemServiceCoreAssembly {
         subSystemDefaultContext.setKey(key);
         subSystemDefaultContext.setDeviceInfo(deviceInfo);
         subSystemDefaultContext.setAlias(metric.getAlias());
-        subSystemDefaultContext.setValue(metric.getValue());
+        subSystemDefaultContext.setValue(metric.getValue().toString());
         subSystemDefaultContext.setTimestamp(metric.getTimestamp());
         return subSystemDefaultContext;
     }
@@ -158,13 +158,13 @@ public class SubSystemServiceCoreAssembly {
      */
     private static void specialFieldsConversion(Metric metric) {
         String alias = metric.getAlias();
-        Object value = metric.getValue();
+        String value = metric.getValue().toString();
         if (null == value) return;
         boolean empty = Arrays.stream(SpecialFieldsEnum.values()).map(SpecialFieldsEnum::name).filter(v -> v.equals(alias)).findAny().isEmpty();
         if (empty) return;
-        if (value.equals(false))
+        if (value.equals("false"))
             metric.setValue(Constants.SPECIAL_FIELDS_FALSE);
-        if (value.equals(true))
+        if (value.equals("true"))
             metric.setValue(Constants.SPECIAL_FIELDS_TRUE);
     }
 

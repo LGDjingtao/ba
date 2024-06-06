@@ -111,7 +111,7 @@ public class LinkageModule {
         String alias = subSystemDefaultContext.getAlias();
         String realTimeData = caffeineCacheModule.getSynchronizeRedisCacheValue(key);
         JSONObject realTimeDataObj = JSONObject.parseObject(realTimeData);
-        subSystemDefaultContext.setValue(realTimeDataObj.get(alias));
+        subSystemDefaultContext.setValue(realTimeDataObj.getString(alias));
         subSystemDefaultContext.setRealTimeData(realTimeData);
     }
 

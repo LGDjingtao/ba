@@ -28,7 +28,7 @@ public class MqttEventListener {
      */
     @EventListener(classes = MqttMessageSentEvent.class)
     public void listenerAction(MqttMessageSentEvent event) {
-        log.info("已发送的事件通知:[{}]", event.toString());
+        log.debug("已发送的事件通知:[{}]", event.toString());
     }
 
     /**
@@ -39,7 +39,7 @@ public class MqttEventListener {
      */
     @EventListener(classes = MqttMessageDeliveredEvent.class)
     public void listenerAction(MqttMessageDeliveredEvent event) {
-        log.info("已传输完成的事件通知:[{}]", event.toString());
+        log.debug("已传输完成的事件通知:[{}]", event.toString());
     }
 
     /**

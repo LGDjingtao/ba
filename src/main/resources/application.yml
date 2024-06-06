@@ -98,3 +98,10 @@ ba:
 logging:
   level:
     root: info
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 50
+        readTimeout: 50

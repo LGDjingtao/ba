@@ -92,4 +92,24 @@ public class Constants {
      */
     public static final long ONE_MINS = 1000 * 60;
 
+    /**
+     * 总三相电
+     */
+    public static String ALL_EPA = "EPA";
+
+    /**
+     * 三相电1
+     */
+    public static String EPA1 = "EPA1";
+
+    /**
+     * 三相电2
+     */
+    public static String EPA2 = "EPA2";
+
+    /**
+     * 三相电3
+     */
+    public static String EPA3 = "EPA3";
+
 }
