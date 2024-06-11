@@ -134,8 +134,16 @@ public class AlarmModule {
             node.put(alias, Long.MIN_VALUE);
             return node;
         });
-        //如果有该设备缓存 消警情况-重置该设备这个物模型的告警时间
+        /**
+         * 如果有该设备缓存
+         * 消警情况-重置该设备这个物模型的告警时间
+         * 告警情况-如果没有值，初始化一个该设备这个物模型缓存
+         */
         alarmMark.computeIfPresent(deviceCode, (DEVICECODE, NODE) -> {
+            if (alarmOrAlarmCancel) {
+                //如果没有值，初始化一个该设备这个物模型缓存
+                NODE.computeIfAbsent(alias, (ALIAS) -> Long.MIN_VALUE);
+            }
             if (!alarmOrAlarmCancel) NODE.put(alias, Long.MIN_VALUE);
             return NODE;
         });
