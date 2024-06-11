@@ -105,6 +105,9 @@ public class AlarmStrategy {
         if (strategy.equals("0")) {
             return false;
         }
+        if (strategy.equals("3")) {
+            return false;
+        }
         return true;
     }
 }

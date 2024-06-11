@@ -130,11 +130,11 @@ public class LinkageModule {
         String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
         boolean isExistTargetTask = checkExistTargetTask(linkageDeviceCode, triggerDeviceCode);
         if (isExistTargetTask) {
-            log.warn("旧联动任务已经存在，不启动新联动任务");
+            log.warn("旧联动任务已经存在，不启动新联动任务\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}",linkageDeviceCode,triggerDeviceCode);
             return;
         }
         createLinkageTask(subSystemDefaultContext, linkageDeviceCode, triggerDeviceCode);
-        log.info("task#告警联动定时任务，创建新任务成功");
+        log.info("task#[告警]联动定时任务，创建新任务成功\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}",linkageDeviceCode,triggerDeviceCode);
     }
 
     /**
@@ -175,7 +175,7 @@ public class LinkageModule {
         String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
         String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
         createLinkageTask(subSystemDefaultContext, linkageDeviceCode, triggerDeviceCode);
-        log.info("task#告警联动定时任务，设备还在告警，再次创建联动任务成功");
+        log.info("task#[告警]联动定时任务，设备还在告警，再次创建联动任务成功\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}",linkageDeviceCode,triggerDeviceCode);
     }
 
 
