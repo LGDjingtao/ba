@@ -70,7 +70,7 @@ public class CaffeineCacheModule {
             return realTimeData;
         }
         //同步成功 后 删除数据库和缓存
-        rmSynRedisFailedCacheValue(key);
+        caffeineCacheModule.rmSynRedisFailedCacheValue(key);
         return realTimeData;
     }
 
@@ -165,7 +165,7 @@ public class CaffeineCacheModule {
      *
      * @param key 物模型数据数据key
      */
-    @CacheEvict(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key", condition = "#key")
+    @CacheEvict(cacheNames = Constants.SYN_REDIS_FAILED, key = "#key")
     public void rmSynRedisFailedCacheValue(String key) {
         String synRedisFailedCacheValue = caffeineCacheModule.getSynRedisFailedCacheValue(key);
         if (null == synRedisFailedCacheValue) return;
