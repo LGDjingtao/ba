@@ -3,7 +3,6 @@ package com.subsystem.core.module.alarm;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.subsystem.core.common.Constants;
 import com.subsystem.core.entity.ResultBean;
@@ -63,7 +62,7 @@ public class AlarmModule {
     /**
      * 告警<设备code，告警别名，上次告警时间>
      */
-    private final static ConcurrentHashMap<String, ConcurrentHashMap<String, Long>> alarmMark = new ConcurrentHashMap();
+    private final static ConcurrentHashMap<String, ConcurrentHashMap<String, Long>> alarmMark = new ConcurrentHashMap<>();
 
     /**
      * 监听告警事件
@@ -101,9 +100,9 @@ public class AlarmModule {
     }
 
     /**
-     * 判断是不是重复告警 true-重复告警 false-非重复告警
+     * 判断是不是重复告警
      *
-     * @return
+     * @return true-重复告警 false-非重复告警
      */
     private boolean isRepeatedAlarm(SubSystemDefaultContext subSystemDefaultContext) {
         String deviceCode = subSystemDefaultContext.getDeviceInfo().getDeviceCode();
@@ -147,7 +146,6 @@ public class AlarmModule {
      * 告警和故障处理
      *
      * @param subSystemDefaultContext 上下文
-     * @return 告警信息
      */
     public void alarmAndFaultHandle(SubSystemDefaultContext subSystemDefaultContext) {
         String realTimeData = subSystemDefaultContext.getRealTimeData();
@@ -234,7 +232,7 @@ public class AlarmModule {
                 //加入告警信息物模型
                 physicalModel.put(deviceAlarmType.getAlarmMessageAlias(), strip);
                 String trim = strip.trim();
-                if (null == trim || "".equals(trim))
+                if ("".equals(trim))
                     physicalModel.put(deviceAlarmType.getAlarmNewAlias(), "0");
             }
         }
@@ -278,7 +276,7 @@ public class AlarmModule {
                 //加入故障信息物模型
                 physicalModel.put(deviceFaultType.getDeviceFaultMessageAlias(), strip);
                 String trim = strip.trim();
-                if (null == trim || "".equals(trim))
+                if ("".equals(trim))
                     physicalModel.put(deviceFaultType.getDeviceFaultNewAlias(), "0");
             }
         }
@@ -326,7 +324,7 @@ public class AlarmModule {
     /**
      * 是否是告警数据
      *
-     * @param subSystemDefaultContext
+     * @param subSystemDefaultContext 子系统上下文
      * @return true-告警数据 false-非告警数据
      */
     public boolean isAlarmData(SubSystemDefaultContext subSystemDefaultContext) {
@@ -447,7 +445,7 @@ public class AlarmModule {
      * @param stringBuilder ：原字符串
      * @param keyword       ：字符
      * @param before        ：在字符前需要插入的字段
-     * @return
+     * @return 处理好的告警描述数据
      */
     public static String replacementInfo(StringBuilder stringBuilder, String keyword, String before) {
         //字符第一次出现的位置

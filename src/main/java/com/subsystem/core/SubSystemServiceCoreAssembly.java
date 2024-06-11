@@ -162,10 +162,10 @@ public class SubSystemServiceCoreAssembly {
         if (null == value) return;
         boolean empty = Arrays.stream(SpecialFieldsEnum.values()).map(SpecialFieldsEnum::name).filter(v -> v.equals(alias)).findAny().isEmpty();
         if (empty) return;
-        if (value.equals("false"))
-            metric.setValue(Constants.SPECIAL_FIELDS_FALSE);
-        if (value.equals("true"))
-            metric.setValue(Constants.SPECIAL_FIELDS_TRUE);
+        if (value.equals(Constants.SPECIAL_FIELDS_FALSE))
+            metric.setValue(Constants.SPECIAL_FIELDS_0);
+        if (value.equals(Constants.SPECIAL_FIELDS_TRUE))
+            metric.setValue(Constants.SPECIAL_FIELDS_1);
     }
 
 

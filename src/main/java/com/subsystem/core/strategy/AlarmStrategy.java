@@ -1,6 +1,7 @@
 package com.subsystem.core.strategy;
 
 import cn.hutool.core.util.NumberUtil;
+import com.subsystem.core.common.Constants;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,10 +23,10 @@ public class AlarmStrategy {
          */
         if (strategy.equals("0")) {
             try {
-                if (value.equals("true")) return true;
-                if (value.equals("false")) return false;
-                if (value.equals("1")) return true;
-                if (value.equals("0")) return false;
+                if (value.equals(Constants.SPECIAL_FIELDS_TRUE)) return true;
+                if (value.equals(Constants.SPECIAL_FIELDS_FALSE)) return false;
+                if (value.equals(Constants.SPECIAL_FIELDS_1)) return true;
+                if (value.equals(Constants.SPECIAL_FIELDS_0)) return false;
             } catch (Exception e) {
                 log.error("{}", e.getMessage());
                 log.error("策略0->真实值或者阈值有误(真实值和阈值必须为true | false) value:{}", value);
@@ -84,10 +85,10 @@ public class AlarmStrategy {
         if (strategy.equals("3")) {
             try {
                 if (null==value)return false;
-                if (value.equals("true")) return false;
-                if (value.equals("false")) return true;
-                if (value.equals("1")) return false;
-                if (value.equals("0")) return true;
+                if (value.equals(Constants.SPECIAL_FIELDS_TRUE)) return false;
+                if (value.equals(Constants.SPECIAL_FIELDS_FALSE)) return true;
+                if (value.equals(Constants.SPECIAL_FIELDS_1)) return false;
+                if (value.equals(Constants.SPECIAL_FIELDS_0)) return true;
             } catch (Exception e) {
                 log.error("{}", e.getMessage());
                 log.error("策略3->真实值或者阈值有误(真实值和阈值必须为true | false | 0 | 1)value:{}", value);

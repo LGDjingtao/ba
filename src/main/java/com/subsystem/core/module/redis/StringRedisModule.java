@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * reids 模块
+ */
 @Component
 @AllArgsConstructor
 @Slf4j

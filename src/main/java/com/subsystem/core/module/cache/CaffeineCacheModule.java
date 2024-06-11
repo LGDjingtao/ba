@@ -20,7 +20,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -29,13 +28,25 @@ public class CaffeineCacheModule {
 
     @Resource
     CacheManager cacheManager;
+    /**
+     * redis 模块
+     */
     @Resource
     StringRedisModule redisModule;
+    /**
+     * 缓存模块
+     */
     @Lazy
     @Resource
     CaffeineCacheModule caffeineCacheModule;
+    /**
+     * 数据库模块
+     */
     @Resource
     RepositoryModule repositoryModule;
+    /**
+     * 资产服务 远程rpc
+     */
     @Resource
     AssetsFeign assetsFeign;
     /**

@@ -25,11 +25,21 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 @Slf4j
 public class SubSystemCacheDefaultInitModule implements InitModule {
-    //静态数据模块
+    /**
+     * 静态数据模块
+     */
     SubSystemStaticDataDefaultModule subSystemStaticDataDefaultModule;
-    //redis模块
+    /**
+     * redis模块
+     */
     StringRedisModule stringRedisModule;
+    /**
+     * 缓存模块
+     */
     CaffeineCacheModule caffeineCacheModule;
+    /**
+     * 数据库模块
+     */
     RepositoryModule repositoryModule;
     CacheManager cacheManager;
 

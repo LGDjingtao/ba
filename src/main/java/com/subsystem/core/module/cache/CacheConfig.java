@@ -25,23 +25,6 @@ public class CacheConfig {
     @Resource
     ApplicationContext eventDrivenModule;
 
-    /**
-     * 创建基于Caffeine的Cache Manager
-     */
-//    @Bean(name = CacheConstants.LOCAL)
-//    public CacheManager localCacheManager() {
-//        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-//        cacheManager.setCaffeine(getLocalCacheType());
-//        return cacheManager;
-//    }
-//
-//    private Caffeine<Object, Object> getLocalCacheType() {
-//        return Caffeine.newBuilder().recordStats()
-//                .initialCapacity(2000)
-//                .maximumSize(10000)
-//                .expireAfterWrite(CacheConstants.EXPIRES_10_MIN, TimeUnit.SECONDS);
-//    }
-
 
     /**
      * Caffeine配置说明：
@@ -66,8 +49,8 @@ public class CacheConfig {
         List<CaffeineCache> list = new ArrayList<>();
         list.add(new CaffeineCache(Constants.SYN_REDIS,
                 Caffeine.newBuilder()
-                        .initialCapacity(2000)//后面可以考虑将这些值放入配置文件
-                        .maximumSize(10000)
+                        .initialCapacity(Constants.SYN_REDIS_INITIALCAPACITY)//后面可以考虑将这些值放入配置文件
+                        .maximumSize(Constants.DEFAULT_MAXIMUMSIZE)
                         .removalListener((key, value, cause) -> {
                             log.debug("SYN_REDIS失效");
                             log.debug("key:{}", key);
@@ -77,18 +60,18 @@ public class CacheConfig {
                         .build()));
         list.add(new CaffeineCache(Constants.LOCAL,
                 Caffeine.newBuilder()
-                        .initialCapacity(50)
-                        .maximumSize(10000)
+                        .initialCapacity(Constants.LOCAL_INITIALCAPACITY)
+                        .maximumSize(Constants.DEFAULT_MAXIMUMSIZE)
                         .build()));
         list.add(new CaffeineCache(Constants.SYN_REDIS_FAILED,
                 Caffeine.newBuilder()
-                        .initialCapacity(20)
-                        .maximumSize(10000)
+                        .initialCapacity(Constants.SYN_REDIS_FAILED_INITIALCAPACITY)
+                        .maximumSize(Constants.DEFAULT_MAXIMUMSIZE)
                         .build()));
         list.add(new CaffeineCache(Constants.THRESHOLD_CACHE,
                 Caffeine.newBuilder()
-                        .initialCapacity(20)
-                        .maximumSize(10000)
+                        .initialCapacity(Constants.THRESHOLD_CACHE_INITIALCAPACITY)
+                        .maximumSize(Constants.DEFAULT_MAXIMUMSIZE)
                         .removalListener((key, value, cause) -> {
                             log.debug("THRESHOLD_CACHE失效");
                             log.debug("key:{}", key);
@@ -100,6 +83,25 @@ public class CacheConfig {
         cacheManager.setCaches(list);
         return cacheManager;
     }
+
+
+
+    /*
+      创建基于Caffeine的Cache Manager
+     */
+//    @Bean(name = CacheConstants.LOCAL)
+//    public CacheManager localCacheManager() {
+//        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+//        cacheManager.setCaffeine(getLocalCacheType());
+//        return cacheManager;
+//    }
+//
+//    private Caffeine<Object, Object> getLocalCacheType() {
+//        return Caffeine.newBuilder().recordStats()
+//                .initialCapacity(2000)
+//                .maximumSize(10000)
+//                .expireAfterWrite(CacheConstants.EXPIRES_10_MIN, TimeUnit.SECONDS);
+//    }
 
 }
 

@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * 定时把之前本地同步到redis失败的数据再次去尝试同步到redis
+ */
 @Component
 @Slf4j
 @AllArgsConstructor
