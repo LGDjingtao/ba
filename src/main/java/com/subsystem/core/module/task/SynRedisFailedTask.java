@@ -40,8 +40,8 @@ public class SynRedisFailedTask extends ScheduleTask {
         subSystemDefaultContext.setKey(key);
         subSystemDefaultContext.setRealTimeData(realTimeDataStr);
         SynRedisEvent synRedisEvent = new SynRedisEvent(this, subSystemDefaultContext);
-        eventDrivenModule.publishEvent(synRedisEvent);
         log.info("重新同步redis\nkey{}\nvalue:{}", key, realTimeDataStr);
+        eventDrivenModule.publishEvent(synRedisEvent);
     }
 
 }

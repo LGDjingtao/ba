@@ -1,0 +1,91 @@
+server:
+  port: 40009
+
+spring:
+  application:
+    name: sn-basys
+  cloud:
+    nacos:
+      discovery:
+        server-addr: http://192.168.1.3:8848
+        namespace: gx-police-prod
+        ip: 192.168.1.2
+        port: 40009
+  redis:
+    database: 1
+    host: 192.168.1.3
+    port: 6379
+    password:
+    timeout: 6000ms
+    jedis:
+      pool:
+        max-active: 1000
+        max-wait: -1ms
+        max-idle: 10
+        min-idle: 5
+  datasource:
+    driver-class-name: dm.jdbc.driver.DmDriver
+    url: jdbc:dm://192.168.1.3:5236/BA?zeroDateTimeBehavior=convertToNull&userUnicode=true&characterEncoding=UTF-8
+    username: SYSDBA
+    password: SYSDBA
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 120
+      connection-timeout: 30000
+      minimum-idle: 10
+      idle-timeout: 500000
+      max-lifetime: 540000
+
+  jpa:
+    database-platform: org.hibernate.dialect.DmDialect
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.DmDialect
+        default_schema: BA
+        hbm2ddl:
+          auto: update
+        show_sql: false
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+mqtt:
+  hostUrl: tcp://192.168.1.3:1883
+  username: admin
+  password: public
+  inboundClientIdBA: displacement-inbound-BA
+  inboundGatewayTopicBA: /GATEWAY/BA2/GXGAT/#
+  inboundClientIdNY: displacement-inbound-NY
+  inboundGatewayTopicNY: /GATEWAY/NY2/GXGAT/#
+  inboundClientIdDL: displacement-inbound-DL
+  inboundGatewayTopicDL: /GATEWAY/DL2/GXGAT/#
+  inboundClientIdHJ: displacement-inbound-HJ
+  inboundGatewayTopicHJ: /GATEWAY/HJ2/GXGAT/#
+  inboundClientIdIAQ: displacement-inbound-IAQ
+  inboundGatewayTopicIAQ: /GATEWAY/IAQ2/GXGAT/#
+
+  outboundClientId: displacement-outbound
+  outboundPlatformTopics:
+    - /GATEWAY/NBMTWPYW/#
+  defaultTopic: /GATEWAY/NBMTWPYW/#
+  timeout: 1000
+  keepalive: 60
+  enabled: false
+
+ba:
+  topic: /GATEWAY/BA2/GXGAT/command
+  linkageTaskTime: 5
+
+logging:
+  level:
+    root: info
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 50
+        readTimeout: 50

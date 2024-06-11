@@ -193,7 +193,7 @@ public class LinkageModule {
         //业务逻辑
         Runnable runAble = getRunAble(subSystemDefaultContext);
         //延迟LinkageTaskTime分钟后处理业务逻辑
-        scheduled.schedule(runAble, baProperties.getLinkageTaskTime(), TimeUnit.SECONDS);
+        scheduled.schedule(runAble, baProperties.getLinkageTaskTime(), TimeUnit.MINUTES);
         //不在接受新任务 runAble执行完成 就销毁线程池
         scheduled.shutdown();
         log.info("task#告警联动定时任务，设备还在告警，再次创建联动任务成功");

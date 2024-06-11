@@ -392,7 +392,7 @@ public class AlarmModule {
                 alarmStrategyValue = thresholdVo.getMinValue();
             }
         } catch (Exception e) {
-            log.error("设备{}使用默认阈值：{}", deviceCode, alarmStrategyValue);
+            log.error("rpc请求失败::设备{}将使用默认阈值：{}", deviceCode, alarmStrategyValue);
         }
         return alarmStrategyValue;
     }
