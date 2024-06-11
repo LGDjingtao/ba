@@ -116,10 +116,22 @@ public class CaffeineTest {
     }
 
     public static void main(String[] args) {
+//        ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+//        map.put("2", "1");
+//        //不存在就不计算 存在就用后面的再次计算
+//        String s = map.computeIfPresent("1", (v,k) -> k+"2");
+//        System.out.println(s);
+//        String s1 = map.get("2");
+//        System.out.println(s1);
+//        //存在就不计算 ， 不存在就用后面的
+//        map.computeIfAbsent("32",v->"22");
+//        String s2 = map.get("32");
+//        System.out.println(s2);
+
         ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-        map.put("2", "1");
+        map.put("1", "1");
         //不存在就不计算 存在就用后面的再次计算
-        String s = map.computeIfPresent("1", (v,k) -> k+"2");
+        String s = map.computeIfPresent("1", (v,k) -> null);
         System.out.println(s);
         String s1 = map.get("2");
         System.out.println(s1);
@@ -127,7 +139,7 @@ public class CaffeineTest {
         map.computeIfAbsent("32",v->"22");
         String s2 = map.get("32");
         System.out.println(s2);
-
-        //map.
     }
+
+
 }

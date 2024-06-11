@@ -1,16 +1,16 @@
 server:
-  port: 30015
+  port: 40009
 
 spring:
   application:
-    name: sn-article-displacement
+    name: sn-basys
   cloud:
     nacos:
       discovery:
         server-addr: http://192.168.1.214:8848
         namespace: gx-police-test
-        ip: 192.168.1.15
-        port: 30015
+        ip: 192.168.1.214
+        port: 40009
 #  datasource:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #    url: jdbc:mysql://192.168.29.128:3306/ba?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
@@ -69,31 +69,31 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
 mqtt:
-  hostUrl: tcp://192.168.29.128:1883
+  hostUrl: tcp://192.168.1.214:1883
   username: admin
   password: public
-  inboundClientIdBA: displacement-inbound-BA
+  inboundClientIdBA: displacement-inbound-BA1
   inboundGatewayTopicBA: /GATEWAY/BA2/GXGAT/#
-  inboundClientIdNY: displacement-inbound-NY
-  inboundGatewayTopicNY: /GATEWAY/NY/GXGAT/#
-  inboundClientIdDL: displacement-inbound-DL
-  inboundGatewayTopicDL: /GATEWAY/DL/GXGAT/#
-  inboundClientIdHJ: displacement-inbound-HJ
-  inboundGatewayTopicHJ: /GATEWAY/HJ/GXGAT/#
-  inboundClientIdIAQ: displacement-inbound-IAQ
-  inboundGatewayTopicIAQ: /GATEWAY/IAQ/GXGAT/#
+  inboundClientIdNY: displacement-inbound-NY1
+  inboundGatewayTopicNY: /GATEWAY/NY2/GXGAT/#
+  inboundClientIdDL: displacement-inbound-DL1
+  inboundGatewayTopicDL: /GATEWAY/DL2/GXGAT/#
+  inboundClientIdHJ: displacement-inbound-HJ1
+  inboundGatewayTopicHJ: /GATEWAY/HJ2/GXGAT/#
+  inboundClientIdIAQ: displacement-inbound-IAQ1
+  inboundGatewayTopicIAQ: /GATEWAY/IAQ2/GXGAT/#
 
-  outboundClientId: displacement-outbound
+  outboundClientId: displacement-outbound2
   outboundPlatformTopics:
-    - /GATEWAY/NBMTWPYW/#
-  defaultTopic: /GATEWAY/NBMTWPYW/#
+    - /GATEWAY/NBMTWPYW2/#
+  defaultTopic: /GATEWAY/NBMTWPYW2/#
   timeout: 1000
   keepalive: 60
   enabled: false
 
 ba:
   topic: /GATEWAY/BA2/GXGAT/command
-  linkageTaskTime: 5
+  linkageTaskTime: 15
 
 logging:
   level:
@@ -104,4 +104,4 @@ feign:
     config:
       default:
         connectTimeout: 50
-        readTimeout: 50
+        readTimeout: 100

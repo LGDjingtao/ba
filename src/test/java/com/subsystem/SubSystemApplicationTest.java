@@ -2,6 +2,7 @@ package com.subsystem;
 
 import com.alibaba.fastjson.JSON;
 import com.subsystem.core.common.Constants;
+import com.subsystem.core.event.LinkageEvent;
 import com.subsystem.core.module.SubSystemDefaultContext;
 import com.subsystem.core.module.cache.CaffeineCacheModule;
 import com.subsystem.core.module.redis.StringRedisModule;
@@ -16,6 +17,7 @@ import org.springframework.cache.CacheManager;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,6 +37,7 @@ public class SubSystemApplicationTest {
     CaffeineCacheModule caffeineCacheModule;
     @Resource
     TestCa testCa;
+    private final static ConcurrentHashMap<String, ConcurrentHashMap<String, ScheduledExecutorService>> map = new ConcurrentHashMap();
 
     @Test
     public void test() {
@@ -156,6 +159,60 @@ public class SubSystemApplicationTest {
     void test_alarmFiledValid() {
         List<AlarmInfo> alarmFiledInfo = repositoryModule.findAlarmFiledInfo();
         System.out.println("tset");
+    }
+
+    @Test
+    void test_scheduledExecutorServiceValid() throws Exception {
+        ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor();
+        Runnable runnable = getCallable(scheduled);
+        scheduled.schedule(runnable, 10, TimeUnit.SECONDS);
+        while (true) {
+            Thread.sleep(1000);
+            System.out.println(scheduled.isShutdown());
+        }
+    }
+
+    private Runnable getCallable(ScheduledExecutorService scheduled) {
+        return () -> {
+            System.out.println("Runnable");
+            scheduled.shutdown();
+        };
+    }
+
+    @Test
+    void test_endThisEventValid() throws Exception {
+        int i = 0;
+        int j = 0;
+
+        while (true) {
+            ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor();
+            Runnable runnable = getCallable(scheduled);
+            scheduled.schedule(runnable, 10, TimeUnit.SECONDS);
+            ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get("triggerDeviceCode"+j);
+            if (null == triggerDeviceCodeMap) {
+                triggerDeviceCodeMap = new ConcurrentHashMap<>();
+                this.map.put("linkageDeviceCode"+i, triggerDeviceCodeMap);
+            }
+            triggerDeviceCodeMap.put("triggerDeviceCode"+j, scheduled);
+            endThisEvent( "linkageDeviceCode"+i,  "triggerDeviceCode"+j);
+            Thread.sleep(1000);
+            System.out.println(scheduled.isShutdown());
+        }
+    }
+
+    /**
+     * 结束这个事件
+     */
+    private void endThisEvent(String linkageDeviceCode, String triggerDeviceCode) {
+
+        if (this.map.containsKey(linkageDeviceCode)) {
+            ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
+            if (triggerDeviceCodeMap.containsKey(triggerDeviceCode)) {
+                ScheduledExecutorService scheduled = triggerDeviceCodeMap.get(triggerDeviceCode);
+                List<Runnable> runnables = scheduled.shutdownNow();
+                triggerDeviceCodeMap.remove(triggerDeviceCode);
+            }
+        }
     }
 
 

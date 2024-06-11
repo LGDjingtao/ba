@@ -59,8 +59,10 @@ public class LinkageModule {
         boolean alarmOrAlarmCancel = subSystemDefaultContext.getAlarmOrAlarmCancel();
         //不是第一次联动 就需要重新获取告警信息 和 重新判断时告警还是消警
         if (!first) alarmOrAlarmCancel = isAlarmOrAlarmCancel(subSystemDefaultContext);
-        //告警处理
-        if (alarmOrAlarmCancel) alarmHandle(subSystemDefaultContext);
+        //告警处理 且第一次联动
+        if (alarmOrAlarmCancel && first) alarmHandleAndFirst(subSystemDefaultContext);
+        //告警处理 且不是第一次联动
+        if (alarmOrAlarmCancel && !first) alarmHandle(subSystemDefaultContext);
         //第一次联动不走消警逻辑
         if (!alarmOrAlarmCancel && !first) alarmCancelHandle(linkageInfo);
     }
@@ -120,26 +122,66 @@ public class LinkageModule {
      *
      * @param subSystemDefaultContext 子系统上下文
      */
+    private void alarmHandleAndFirst(SubSystemDefaultContext subSystemDefaultContext) {
+        LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
+        //去除第一次联动标识
+        linkageInfo.setFirst(false);
+        String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
+        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
+
+        //关闭旧联动任务，这个有可能关闭失败
+        //endThisEvent(linkageDeviceCode, triggerDeviceCode);
+        boolean isExistTargetTask = checkExistTargetTask(linkageDeviceCode, triggerDeviceCode);
+        if (isExistTargetTask) {
+            log.warn("旧联动任务已经存在，不启动新联动任务");
+            return;
+        }
+
+        //开启联动设备
+        controlLinkageDevice(linkageDeviceCode, 1);
+        //联动信息 入库 保证联动数据有状态
+        repositoryModule.saveLinkageInfo(subSystemDefaultContext);
+
+
+        //创建延迟任务
+        ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor();
+        ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
+        if (null == triggerDeviceCodeMap) {
+            triggerDeviceCodeMap = new ConcurrentHashMap<>();
+            this.map.put(linkageDeviceCode, triggerDeviceCodeMap);
+        }
+
+
+        triggerDeviceCodeMap.put(triggerDeviceCode, scheduled);
+        //业务逻辑
+        Runnable runAble = getRunAble(subSystemDefaultContext);
+        //延迟LinkageTaskTime分钟后处理业务逻辑
+        scheduled.schedule(runAble, baProperties.getLinkageTaskTime(), TimeUnit.SECONDS);
+        //线程池不在接受新任务 runAble执行完就会销毁线程池 不会造成内存泄漏
+        scheduled.shutdown();
+
+        log.info("task#告警联动定时任务，创建新任务成功");
+    }
+
+    /**
+     * 联动设备告警处理
+     *
+     * @param subSystemDefaultContext 子系统上下文
+     */
     private void alarmHandle(SubSystemDefaultContext subSystemDefaultContext) {
         LinkageInfo linkageInfo = subSystemDefaultContext.getLinkageInfo();
 
-        //去除第一次联动标识
-        linkageInfo.setFirst(false);
+        String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
+        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
+
 
         //开启联动设备
-        String linkageDeviceCode = linkageInfo.getLinkageDeviceCode();
         controlLinkageDevice(linkageDeviceCode, 1);
 
         //联动信息 入库 保证联动数据有状态
         repositoryModule.saveLinkageInfo(subSystemDefaultContext);
 
-        //触发设备的设备code
-        String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
-        //结束延迟事件 后面再开新的告警延迟事件
-        endThisEvent(linkageDeviceCode, triggerDeviceCode);
-        log.info("task[告警]#联动定时任务结束\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}", linkageDeviceCode, triggerDeviceCode);
-        //业务逻辑
-        Runnable runAble = getRunAble(subSystemDefaultContext);
+
         //创建延迟任务
         ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor();
         ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
@@ -148,10 +190,15 @@ public class LinkageModule {
             this.map.put(linkageDeviceCode, triggerDeviceCodeMap);
         }
         triggerDeviceCodeMap.put(triggerDeviceCode, scheduled);
+        //业务逻辑
+        Runnable runAble = getRunAble(subSystemDefaultContext);
         //延迟LinkageTaskTime分钟后处理业务逻辑
-        scheduled.schedule(runAble, baProperties.getLinkageTaskTime(), TimeUnit.MINUTES);
-        log.info("task#告警联动定时任务创建任务成功");
+        scheduled.schedule(runAble, baProperties.getLinkageTaskTime(), TimeUnit.SECONDS);
+        //不在接受新任务 runAble执行完成 就销毁线程池
+        scheduled.shutdown();
+        log.info("task#告警联动定时任务，设备还在告警，再次创建联动任务成功");
     }
+
 
     /**
      * 联动逻辑
@@ -162,32 +209,58 @@ public class LinkageModule {
             //触发一次联动事件
             eventDrivenModule.publishEvent(linkageEvent);
         };
-
     }
 
 
     /**
-     * 结束这个事件
+     * 结束这个事件 如果事件已经开始运行，就不会关闭
      */
     private void endThisEvent(String linkageDeviceCode, String triggerDeviceCode) {
-        if (this.map.containsKey(linkageDeviceCode)) {
-            ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
-            if (triggerDeviceCodeMap.containsKey(triggerDeviceCode)) {
-                ScheduledExecutorService scheduled = triggerDeviceCodeMap.get(triggerDeviceCode);
+        this.map.computeIfPresent(linkageDeviceCode, (linkagecode, node) -> {
+            node.computeIfPresent(triggerDeviceCode, (triggercode, scheduled) -> {
                 scheduled.shutdown();
-                triggerDeviceCodeMap.remove(triggerDeviceCode);
-            }
-        }
+                scheduled.shutdownNow();
+                log.info("\n scheduled线程池是否停止接受新任务: {} \n scheduled线程池是否成功中断所有任务: {}", scheduled.isShutdown(), scheduled.isTerminated());
+                return scheduled.isTerminated() ? null : scheduled;
+            });
+            return node;
+        });
+    }
+
+    /**
+     * 结束这个事件 如果事件已经开始运行，就不会关闭
+     */
+    private void rmThisEvent(String linkageDeviceCode, String triggerDeviceCode) {
+        this.map.computeIfPresent(linkageDeviceCode, (linkagecode, node) -> {
+            node.computeIfPresent(triggerDeviceCode, (triggercode, scheduled) -> null);
+            return node;
+        });
     }
 
 
     /**
-     * 检查任务是否已经存在
+     * 检查设备身上 是否还存在任务
      */
     private boolean checkExistTask(String linkageDeviceCode) {
         if (this.map.containsKey(linkageDeviceCode)) {
             ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
+            if (null == triggerDeviceCodeMap) return false;
             if (!triggerDeviceCodeMap.isEmpty()) return true;
+        }
+        return false;
+    }
+
+    /**
+     * 检查设备身上 是否还存在目标任务
+     */
+    private boolean checkExistTargetTask(String linkageDeviceCode, String triggerDeviceCode) {
+        if (this.map.containsKey(linkageDeviceCode)) {
+            ConcurrentHashMap<String, ScheduledExecutorService> triggerDeviceCodeMap = this.map.get(linkageDeviceCode);
+            if (null == triggerDeviceCodeMap) return false;
+            if (triggerDeviceCodeMap.containsKey(triggerDeviceCode)) {
+                ScheduledExecutorService scheduledExecutorService = triggerDeviceCodeMap.get(triggerDeviceCode);
+                return scheduledExecutorService.isTerminated() ? false : true;
+            }
         }
         return false;
     }
@@ -203,8 +276,8 @@ public class LinkageModule {
         String triggerDeviceCode = linkageInfo.getTriggerDeviceCode();
         //删除联动信息
         repositoryModule.deleteLinkageInfo(triggerDeviceCode);
-        //结束事件
-        endThisEvent(linkageDeviceCode, triggerDeviceCode);
+        //移除事件
+        rmThisEvent(linkageDeviceCode, triggerDeviceCode);
         log.info("task[消警]#联动定时任务结束\nlinkageDeviceCode:{}\ntriggerDeviceCode:{}", linkageDeviceCode, triggerDeviceCode);
 
         //联动任务结束 后 需要看改设备身上还有没有绑定联动任务 一个联动任务都没有才关设备
