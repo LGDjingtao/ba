@@ -109,12 +109,13 @@ public class AlarmModule {
         String alias = subSystemDefaultContext.getAlias();
         ConcurrentHashMap<String, Long> alarmMarkMap = alarmMark.get(deviceCode);
         Long lastAlarmTimeStamp = alarmMarkMap.get(alias);
-        if (!lastAlarmTimeStamp.equals(Long.MIN_VALUE)) return true;
+        //if (!lastAlarmTimeStamp.equals(Long.MIN_VALUE)) return true;
         long realTimeStamp = new org.joda.time.DateTime().getMillis();
         //连续告警小于1分钟 不告警这个按需求加
-        //long timeDifference = realTimeStamp - lastAlarmTimeStamp;
-        //if (Constants.ONE_MINS < timeDifference) return true;
-        //非重复告警 记录告警时间戳
+        long timeDifference = realTimeStamp - lastAlarmTimeStamp;
+        log.debug("连续告警相差{}毫秒", timeDifference);
+        if (Constants.ALARM_10_MIN > timeDifference && !lastAlarmTimeStamp.equals(Long.MIN_VALUE)) return true;
+        //记录告警事件戳
         alarmMarkMap.put(alias, realTimeStamp);
         return false;
     }
@@ -144,7 +145,7 @@ public class AlarmModule {
                 //如果没有值，初始化一个该设备这个物模型缓存
                 NODE.computeIfAbsent(alias, (ALIAS) -> Long.MIN_VALUE);
             }
-            if (!alarmOrAlarmCancel) NODE.put(alias, Long.MIN_VALUE);
+            //if (!alarmOrAlarmCancel) NODE.put(alias, Long.MIN_VALUE);
             return NODE;
         });
     }
