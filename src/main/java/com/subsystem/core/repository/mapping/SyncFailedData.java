@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 
 /**
  * 同步失败数据
@@ -21,8 +22,11 @@ public class SyncFailedData {
     @Id
     @Column(name = "`KEY`")
     String key;
-    //设备类型名称
-    @Column(name = "VALUE")
+    /**
+     * 物模型
+     */
+    @Lob()
+    @Column(name = "VALUE", columnDefinition = "TEXT")
     String value;
     //更新时间
     @Column(name = "UPDATE_TIME")
