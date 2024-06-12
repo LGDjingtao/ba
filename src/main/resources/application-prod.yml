@@ -76,8 +76,8 @@ mqtt:
   enabled: false
 
 ba:
-  topic: /GATEWAY/BA2/GXGAT/command
-  linkageTaskTime: 5
+  topic: /GATEWAY/BA/GXGAT/command
+  linkageTaskTime: 15
 
 logging:
   level:
@@ -87,5 +87,5 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 50
-        readTimeout: 50
+        connectTimeout: 100
+        readTimeout: 100
