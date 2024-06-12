@@ -57,15 +57,15 @@ mqtt:
   username: admin
   password: public
   inboundClientIdBA: displacement-inbound-BA
-  inboundGatewayTopicBA: /GATEWAY/BA2/GXGAT/#
+  inboundGatewayTopicBA: /GATEWAY/BA/GXGAT/#
   inboundClientIdNY: displacement-inbound-NY
-  inboundGatewayTopicNY: /GATEWAY/NY2/GXGAT/#
+  inboundGatewayTopicNY: /GATEWAY/NY/GXGAT/#
   inboundClientIdDL: displacement-inbound-DL
-  inboundGatewayTopicDL: /GATEWAY/DL2/GXGAT/#
+  inboundGatewayTopicDL: /GATEWAY/DL/GXGAT/#
   inboundClientIdHJ: displacement-inbound-HJ
-  inboundGatewayTopicHJ: /GATEWAY/HJ2/GXGAT/#
+  inboundGatewayTopicHJ: /GATEWAY/HJ/GXGAT/#
   inboundClientIdIAQ: displacement-inbound-IAQ
-  inboundGatewayTopicIAQ: /GATEWAY/IAQ2/GXGAT/#
+  inboundGatewayTopicIAQ: /GATEWAY/IAQ/GXGAT/#
 
   outboundClientId: displacement-outbound
   outboundPlatformTopics:
