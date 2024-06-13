@@ -111,9 +111,9 @@ public class AlarmModule {
         Long lastAlarmTimeStamp = alarmMarkMap.get(alias);
         //if (!lastAlarmTimeStamp.equals(Long.MIN_VALUE)) return true;
         long realTimeStamp = new org.joda.time.DateTime().getMillis();
-        //连续告警小于1分钟 不告警这个按需求加
         long timeDifference = realTimeStamp - lastAlarmTimeStamp;
         log.debug("连续告警相差{}毫秒", timeDifference);
+        //连续告警小于 特定值就不告警 排除第一次告警的特殊情况
         if (Constants.ALARM_10_MIN > timeDifference && !lastAlarmTimeStamp.equals(Long.MIN_VALUE)) return true;
         //记录告警事件戳
         alarmMarkMap.put(alias, realTimeStamp);
@@ -138,14 +138,11 @@ public class AlarmModule {
         /**
          * 如果有该设备缓存
          * 消警情况-重置该设备这个物模型的告警时间
-         * 告警情况-如果没有值，初始化一个该设备这个物模型缓存
          */
         alarmMark.computeIfPresent(deviceCode, (DEVICECODE, NODE) -> {
-            if (alarmOrAlarmCancel) {
+            if (alarmOrAlarmCancel)
                 //如果没有值，初始化一个该设备这个物模型缓存
                 NODE.computeIfAbsent(alias, (ALIAS) -> Long.MIN_VALUE);
-            }
-            //if (!alarmOrAlarmCancel) NODE.put(alias, Long.MIN_VALUE);
             return NODE;
         });
     }
