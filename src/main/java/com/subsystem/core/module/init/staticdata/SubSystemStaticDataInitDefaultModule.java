@@ -47,7 +47,6 @@ public class SubSystemStaticDataInitDefaultModule extends SubSystemStaticData im
         this.deviceInfoByCode = this.allDeviceInfo.stream().collect(Collectors.toMap(DeviceInfo::getDeviceCode, deviceInfo -> deviceInfo));
         this.deviceInfoBytripartiteCode = this.allDeviceInfo.stream().collect(Collectors.toMap(DeviceInfo::getDeviceTripartiteCode, deviceInfo -> deviceInfo));
         this.deviceInfoByTypeCode = this.allDeviceInfo.stream().collect(Collectors.groupingBy(DeviceInfo::getDeviceTypeCode));
-        log.info("Static######### end 初始化设备信息");
     }
 
     /**
