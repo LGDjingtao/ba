@@ -11,7 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 
 /**
- * 子系统上下文
+ * 联动信息
  */
 @Data
 @AllArgsConstructor
