@@ -1,5 +1,9 @@
 package com.subsystem.core.repository.mapping;
 
+import com.subsystem.api.InitDeviceInfo;
+import com.subsystem.api.repository.ElectricalFireDetectorAssociationData;
+import com.subsystem.api.repository.ElectricitySafetyAreaData;
+import com.subsystem.api.service.BIMServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +12,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.util.List;
 
 /**
  * 设备报警类型
@@ -87,21 +92,36 @@ public class DeviceAlarmType {
         String result = alarmMessage;
 
         //电表类型
-        //todo ssss
-//        List<ElectricitySafetyAreaData> electricitySafetyAreaData = InitDeviceInfo.electricitySafetyAreaByCode.get(deviceCode);
-//        if (null != electricitySafetyAreaData && electricitySafetyAreaData.size() != 0) {
-//            ElectricitySafetyAreaData data = electricitySafetyAreaData.get(0);
-//            String value = InitDLData.getValue(data);
-//            return value + "#" + alarmMessage;
-//        }
-//
-//        //电器火灾类型
-//        List<ElectricalFireDetectorAssociationData> electricalFireDetectorAssociationData = InitDeviceInfo.electricalFireAssociationByCode.get(deviceCode);
-//        if (null != electricalFireDetectorAssociationData && electricalFireDetectorAssociationData.size() != 0) {
-//            ElectricalFireDetectorAssociationData data = electricalFireDetectorAssociationData.get(0);
-//            String value = BIMServiceImpl.createFireProbeName(data);
-//            return value + "#" + alarmMessage;
-//        }
+        List<ElectricitySafetyAreaData> electricitySafetyAreaData = InitDeviceInfo.electricitySafetyAreaByCode.get(deviceCode);
+        if (null != electricitySafetyAreaData && electricitySafetyAreaData.size() != 0) {
+            ElectricitySafetyAreaData data = electricitySafetyAreaData.get(0);
+            String value = getValue(data);
+            return value + "#" + alarmMessage;
+        }
+
+        //电器火灾类型
+        List<ElectricalFireDetectorAssociationData> electricalFireDetectorAssociationData = InitDeviceInfo.electricalFireAssociationByCode.get(deviceCode);
+        if (null != electricalFireDetectorAssociationData && electricalFireDetectorAssociationData.size() != 0) {
+            ElectricalFireDetectorAssociationData data = electricalFireDetectorAssociationData.get(0);
+            String value = BIMServiceImpl.createFireProbeName(data);
+            return value + "#" + alarmMessage;
+        }
         return result;
+    }
+
+    /**
+     * 拼接设备楼层区域信息
+     */
+    private static String getValue(ElectricitySafetyAreaData data) {
+        StringBuilder builder = new StringBuilder();
+        String buildingName = data.getBuildingName();
+        String floor = data.getFloor();
+        String deviceTypeName = data.getDeviceTypeName();
+        return builder
+                .append(buildingName)
+                .append(floor)
+                .append("F#")
+                .append(deviceTypeName)
+                .toString();
     }
 }

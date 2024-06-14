@@ -50,7 +50,7 @@ public class PushAlarmFailedTask extends ScheduleTask {
             }
             repositoryModule.deleteAlarmFiledInfoById(alarmid);
         } catch (Exception e) {
-            log.info("失败告警信息重新推送失败:{}", JSONObject.toJSONString(alarmInfo), e);
+            log.error("失败告警信息重新推送失败:{}", JSONObject.toJSONString(alarmInfo), e);
         }
 
     }
