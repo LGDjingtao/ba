@@ -1,7 +1,7 @@
 package com.subsystem.core.module.mqtt.config;
 
 
-import com.subsystem.core.module.mqtt.hanlder.MqttInboundReceiveHandle;
+import com.subsystem.core.SubSystemServiceCoreAssembly;
 import com.subsystem.core.module.mqtt.prop.MqttProperties;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +28,7 @@ import org.springframework.messaging.MessageHandler;
 public class MqttInboundConfig {
 
     private final MqttProperties mqttProperties;
-    private final MqttInboundReceiveHandle mqttInboundReceiveHandle;
-
+    private final SubSystemServiceCoreAssembly subSystemServiceCoreAssembly;
 
     /**
      * 入站管道
@@ -65,7 +64,14 @@ public class MqttInboundConfig {
     @Bean
     @ServiceActivator(inputChannel = "inBoundChannel_BA")
     public MessageHandler handlerBA() {
-        return (message) -> mqttInboundReceiveHandle.handleMessage(message);
+        return (message) -> {
+            //将消息转发给子系统业务组装模块
+            try {
+                subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
+            } catch (Exception e) {
+                log.error("消息处理失败", e);
+            }
+        };
     }
 
 
@@ -103,7 +109,14 @@ public class MqttInboundConfig {
     @Bean
     @ServiceActivator(inputChannel = "inBoundChannel_NY")
     public MessageHandler handlerNY() {
-        return (message) -> mqttInboundReceiveHandle.handleMessage(message);
+        return (message) -> {
+            //将消息转发给子系统业务组装模块
+            try {
+                subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
+            } catch (Exception e) {
+                log.error("消息处理失败", e);
+            }
+        };
     }
 
 
@@ -140,7 +153,14 @@ public class MqttInboundConfig {
     @Bean
     @ServiceActivator(inputChannel = "inBoundChannel_DL")
     public MessageHandler handlerDL() {
-        return (message) -> mqttInboundReceiveHandle.handleMessage(message);
+        return (message) -> {
+            //将消息转发给子系统业务组装模块
+            try {
+                subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
+            } catch (Exception e) {
+                log.error("消息处理失败", e);
+            }
+        };
     }
 
 
@@ -177,7 +197,14 @@ public class MqttInboundConfig {
     @Bean
     @ServiceActivator(inputChannel = "inBoundChannel_HJ")
     public MessageHandler handlerHJ() {
-        return (message) -> mqttInboundReceiveHandle.handleMessage(message);
+        return (message) -> {
+            //将消息转发给子系统业务组装模块
+            try {
+                subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
+            } catch (Exception e) {
+                log.error("消息处理失败", e);
+            }
+        };
     }
 
 
@@ -215,7 +242,14 @@ public class MqttInboundConfig {
     @Bean
     @ServiceActivator(inputChannel = "inBoundChannel_IAQ")
     public MessageHandler handlerIAQ() {
-        return (message) -> mqttInboundReceiveHandle.handleMessage(message);
+        return (message) -> {
+            //将消息转发给子系统业务组装模块
+            try {
+                subSystemServiceCoreAssembly.serviceAssemblyEntrance(message);
+            } catch (Exception e) {
+                log.error("消息处理失败", e);
+            }
+        };
     }
 
 }
