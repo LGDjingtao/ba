@@ -151,11 +151,10 @@ public class SubSystemServiceCoreAssembly {
     }
 
     /**
-     * 特殊数据转换 对于在线离线，故障，告警 推送值兼容
+     * 特殊数据转换
      * false->"0" true->"1"
      */
     private static void specialFieldsConversion(Metric metric) {
-        String alias = metric.getAlias();
         String value = metric.getValue().toString();
         if (null == value) return;
         if (value.equals(Constants.SPECIAL_FIELDS_FALSE))
