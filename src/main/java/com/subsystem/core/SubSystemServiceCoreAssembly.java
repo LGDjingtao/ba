@@ -3,7 +3,6 @@ package com.subsystem.core;
 
 import com.alibaba.fastjson.JSONObject;
 import com.subsystem.core.common.Constants;
-import com.subsystem.core.common.SpecialFieldsEnum;
 import com.subsystem.core.entity.Metric;
 import com.subsystem.core.entity.MqttPayload;
 import com.subsystem.core.event.EventCollection;
@@ -23,7 +22,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
 import java.util.Optional;
 
 
@@ -160,8 +158,6 @@ public class SubSystemServiceCoreAssembly {
         String alias = metric.getAlias();
         String value = metric.getValue().toString();
         if (null == value) return;
-        boolean empty = Arrays.stream(SpecialFieldsEnum.values()).map(SpecialFieldsEnum::name).filter(v -> v.equals(alias)).findAny().isEmpty();
-        if (empty) return;
         if (value.equals(Constants.SPECIAL_FIELDS_FALSE))
             metric.setValue(Constants.SPECIAL_FIELDS_0);
         if (value.equals(Constants.SPECIAL_FIELDS_TRUE))
