@@ -90,7 +90,7 @@ public class DeviceAlarmType {
 
         //普通类型
         String result = alarmMessage;
-
+        // XXX 迁移过程中com.subsystem.api.InitDeviceInfo找不到就删除，这只是公安厅项目独有的
         //电表类型
         List<ElectricitySafetyAreaData> electricitySafetyAreaData = InitDeviceInfo.electricitySafetyAreaByCode.get(deviceCode);
         if (null != electricitySafetyAreaData && electricitySafetyAreaData.size() != 0) {

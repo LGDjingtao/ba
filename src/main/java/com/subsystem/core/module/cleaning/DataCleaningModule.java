@@ -40,7 +40,7 @@ public class DataCleaningModule {
     CacheManager cacheManager;
 
     /**
-     * @return 合并后的最新数据
+     * 数据清洗
      */
     public void dataCleaning(SubSystemDefaultContext subSystemDefaultContext) {
         //查询本地老缓存
