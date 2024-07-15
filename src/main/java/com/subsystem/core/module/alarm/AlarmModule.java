@@ -368,7 +368,7 @@ public class AlarmModule {
      * @param alarmStrategy   告警策略
      * @return 阈值
      */
-    public String getAlarmStrategyValue(String deviceCode, DeviceAlarmType deviceAlarmType, String alarmStrategy) {
+    private String getAlarmStrategyValue(String deviceCode, DeviceAlarmType deviceAlarmType, String alarmStrategy) {
         //预先给一个默认阈值，拿不到就使用默认阈值
         String alarmStrategyValue = deviceAlarmType.getAlarmStrategyValue();
         if (!AlarmStrategy.isNumericalType(alarmStrategy)) return alarmStrategyValue;

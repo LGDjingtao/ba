@@ -5,7 +5,6 @@ import com.subsystem.core.repository.mapping.AlarmInfo;
 import com.subsystem.core.repository.mapping.DeviceAlarmType;
 import com.subsystem.core.repository.mapping.DeviceInfo;
 import lombok.Data;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
@@ -13,7 +12,6 @@ import java.util.Date;
  * 子系统上下文，保存子系统上下文数据
  */
 @Data
-@Component
 public class SubSystemDefaultContext {
     /**
      * 设备信息

@@ -13,18 +13,13 @@ import com.subsystem.api.vo.CountRunVo;
 
 import com.subsystem.api.vo.ElectricalFireProbeVo;
 import com.subsystem.api.vo.ElectricityPerceptionEquipmentVo;
-import com.subsystem.core.entity.ResultBean;
-import com.subsystem.core.feign.AlarmCenterFeign;
 import com.subsystem.core.module.redis.StringRedisModule;
 import com.subsystem.core.module.staticdata.SubSystemStaticDataDefaultModule;
-import com.subsystem.core.repository.mapping.AlarmInfo;
 import com.subsystem.core.repository.mapping.DeviceInfo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +34,6 @@ import java.util.Map;
 public class BIMServiceImpl {
     StringRedisModule redisUtil;
     SubSystemStaticDataDefaultModule subSystemStaticDataDefaultModule;
-    private AlarmCenterFeign alarmCenterFeign;
-
-    private static final DateTimeFormatter DFY = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 获取设备运行统计
@@ -143,7 +135,7 @@ public class BIMServiceImpl {
         List<ElectricalFireDetectorAssociationData> electricalFireDetectorAssociationDatas = InitDeviceInfo.electricalFireAssociationByCode.get(deviceCode);
         ElectricalFireDetectorAssociationData electricalFireDetectorAssociationData = electricalFireDetectorAssociationDatas.get(0);
         for (int i = 1; i <= 16; i++) {
-            ElectricalFireProbeVo vo = createFireProbe(deviceCode,i, jsonObject, electricalFireDetectorAssociationData);
+            ElectricalFireProbeVo vo = createFireProbe(i, jsonObject, electricalFireDetectorAssociationData);
             if (ObjectUtil.isEmpty(vo)) continue;
             vos.add(vo);
         }
@@ -230,8 +222,7 @@ public class BIMServiceImpl {
     /**
      * 构建温度探针对象
      */
-    private ElectricalFireProbeVo createFireProbe(String deviceCode,Integer number, JSONObject jsonObject, ElectricalFireDetectorAssociationData electricalFireDetectorAssociationData) {
-
+    private ElectricalFireProbeVo createFireProbe(Integer number, JSONObject jsonObject, ElectricalFireDetectorAssociationData electricalFireDetectorAssociationData) {
         //名称 楼栋楼层# + 电柜号# + 设备号# +探针号接入端点#+电表号
         String name = createFireProbeName(electricalFireDetectorAssociationData);
 
@@ -245,82 +236,16 @@ public class BIMServiceImpl {
         String irKey = Common.FIRE_PROBE_CURRENT_VALUE + number;
 
 
+        String tcStatus = jsonObject.getStr(tcStatusKey);
+        tcStatus = tcStatus == null ? "0" : tcStatus;
+        String irStatus = jsonObject.getStr(irStatusKey);
+        irStatus = irStatus == null ? "0" : irStatus;
+
         String tc = jsonObject.getStr(tcKey);
         String ir = jsonObject.getStr(irKey);
         if (Common.FIRE_PROBE_DEFAULT_VALUE.equals(tc) || Common.FIRE_PROBE_DEFAULT_VALUE.equals(ir)) return null;
         if (tc == null || ir == null) return null;
 
-
-        String jsonTcStatus = jsonObject.getStr(tcStatusKey);
-        double tcValue = Double.parseDouble(tc);
-        String tcStatus = (tcValue < 40 || jsonTcStatus == null) ? "0" : "1";
-
-        String jsonIrStatus = jsonObject.getStr(tcStatusKey);
-        double irValue = Double.parseDouble(ir);
-        String irStatus = (irValue < 40 || jsonIrStatus == null) ? "0" : "1";
-
-
-        AlarmInfo alarmInfo = AlarmInfo.builder()
-                .alarmCategory("探针温度超阈值告警")
-                .level(3)
-                .alarmTime(LocalDateTime.now().format(DFY))
-                .alarmDeviceId(deviceCode)
-                .alarmSubsystemName("消防系统")
-                .alarmDeviceType("电气火灾监控探测器")
-                .alarmContent(electricalFireDetectorAssociationData.getDeviceTripartiteCode() +"-"+ electricalFireDetectorAssociationData.getDeviceNumber())
-                .alarmDisposalStatus(0)
-                .build();
-
-        ResultBean receive = null;
-            try {
-                receive = alarmCenterFeign.receive(alarmInfo);
-                int code = receive.getCode();
-                if (!NumberUtil.equals(code, 200)) {
-                    log.error("推送告警信息接口报错，code：{}", code);
-                    throw new Exception("推送告警信息接口报错");
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-
-//        DeviceAlarmType deviceAlarmType = subSystemDefaultContext.getDeviceAlarmType();
-//
-//        String temperatureThreshold = alarmModule.getAlarmStrategyValue(
-//                deviceCode,
-//                deviceAlarmType,"1");
-////                deviceAlarmType.getAlarmStrategy()); // 获取温度阈值
-//        String currentThreshold = alarmModule.getAlarmStrategyValue(
-//                deviceCode,
-//                deviceAlarmType, "1"); // 获取电流阈值
-//
-//        // 比较阈值并设置状态
-//        if (tcValue > Double.parseDouble(temperatureThreshold)) { // 比较温度阈值
-//            tcStatus = "1";  // 超过温度阈值
-
-//            AlarmInfo alarmInfo = subSystemDefaultContext.getAlarmInfo();
-//
-//
-//            ResultBean receive = null;
-//            try {
-//                receive = alarmCenterFeign.receive(alarmInfo);
-//                int code = receive.getCode();
-//                if (!NumberUtil.equals(code, 200)) {
-//                    log.error("推送告警信息接口报错，code：{}", code);
-//                    throw new Exception("推送告警信息接口报错");
-//                }
-//            } catch (Exception e) {
-//                throw new RuntimeException(e);
-//            }
-//        } else {
-//            tcStatus = "0";  // 正常温度
-//        }
-
-//        if (irValue > Double.parseDouble(currentThreshold)) { // 比较电流阈值
-//            irStatus = "1";  // 超过电流阈值
-//        } else {
-//            irStatus = "0";  // 正常电流
-//        }
 
         ElectricalFireProbeVo vo = new ElectricalFireProbeVo();
         vo.setIrStatus(irStatus);
