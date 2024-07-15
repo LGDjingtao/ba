@@ -95,6 +95,31 @@ public class AlarmStrategy {
             }
             return false;
         }
+
+
+        /**
+         * 策略值 - 4
+         * value 高于等于 threshold 且 不等于 3276.7
+         */
+        if (strategy.equals("4")) {
+            //判断是否是数值
+            try {
+                if ("3276.7".equals(value))return false;
+                double v = Double.parseDouble(value);
+                double t = Double.parseDouble(threshold);
+                int compare = NumberUtil.compare(v, t);
+                //小于阈值不报警
+                if (compare < 0) {
+                    return false;
+                }
+                //大于等于阈值报警
+                return true;
+            } catch (Exception e) {
+                log.error("阈值或数值有误，转换为数值失败");
+            }
+            return false;
+        }
+
         return false;
     }
 
