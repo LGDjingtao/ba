@@ -60,4 +60,11 @@ public class ElectricalFireDetectorAssociationData extends ElectricalFireDetecto
     @Column(name = "ELECTRICITY_METER_CODE")
     String electricityMeterCode;
 
+    /**
+     * 电柜名/用途 同步BA硬件系统
+     */
+    @Column(name = "ELECTRIC_CABINET_USE")
+    String electricCabinetUse;
+
+
 }
