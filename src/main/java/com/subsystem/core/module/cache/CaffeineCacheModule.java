@@ -143,6 +143,14 @@ public class CaffeineCacheModule {
         return key;
     }
 
+    /**
+     * 查询本地缓存
+     */
+    @Cacheable(cacheNames = Constants.LOCAL, key = "#key", unless = "#result == null")
+    public Object getLocalCache(String key) {
+        return null;
+    }
+
 
     /**
      * 获取 同步失败缓存

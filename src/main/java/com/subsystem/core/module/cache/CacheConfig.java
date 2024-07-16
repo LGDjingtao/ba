@@ -62,6 +62,7 @@ public class CacheConfig {
                 Caffeine.newBuilder()
                         .initialCapacity(Constants.LOCAL_INITIALCAPACITY)
                         .maximumSize(Constants.DEFAULT_MAXIMUMSIZE)
+                        .expireAfterWrite(Constants.ONLINE_CACHE_EXPIRES, TimeUnit.SECONDS)
                         .build()));
         list.add(new CaffeineCache(Constants.SYN_REDIS_FAILED,
                 Caffeine.newBuilder()

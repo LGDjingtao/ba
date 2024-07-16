@@ -21,6 +21,10 @@ public class Constants {
      */
     public static final int THRESHOLD_CACHE_EXPIRES = 30;
     /**
+     * 在线缓存时间
+     */
+    public static final int ONLINE_CACHE_EXPIRES = 60 * 5;
+    /**
      * 同步缓存
      */
     public static final String SYN_REDIS = "SYN_REDIS";
