@@ -10,9 +10,11 @@ import com.subsystem.api.repository.ElectricalFireDetectorAssociationData;
 import com.subsystem.api.repository.ElectricitySafetyAreaData;
 import com.subsystem.api.vo.BuildingMonitoringAlarmVo;
 import com.subsystem.api.vo.CountRunVo;
-
 import com.subsystem.api.vo.ElectricalFireProbeVo;
 import com.subsystem.api.vo.ElectricityPerceptionEquipmentVo;
+import com.subsystem.core.entity.ResultBean;
+import com.subsystem.core.entity.ThresholdVo;
+import com.subsystem.core.feign.AssetsFeign;
 import com.subsystem.core.module.redis.StringRedisModule;
 import com.subsystem.core.module.staticdata.SubSystemStaticDataDefaultModule;
 import com.subsystem.core.repository.mapping.DeviceInfo;
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * BIM 业务逻辑处理
@@ -34,6 +37,7 @@ import java.util.Map;
 public class BIMServiceImpl {
     StringRedisModule redisUtil;
     SubSystemStaticDataDefaultModule subSystemStaticDataDefaultModule;
+    AssetsFeign assetsFeign;
 
     /**
      * 获取设备运行统计
@@ -134,8 +138,17 @@ public class BIMServiceImpl {
         //获取 单个 电器火灾探测器关联 表信息
         List<ElectricalFireDetectorAssociationData> electricalFireDetectorAssociationDatas = InitDeviceInfo.electricalFireAssociationByCode.get(deviceCode);
         ElectricalFireDetectorAssociationData electricalFireDetectorAssociationData = electricalFireDetectorAssociationDatas.get(0);
+        List<ThresholdVo> thresholds = null;
+        try {
+            ResultBean<List<ThresholdVo>> receive = assetsFeign.receive(deviceCode);
+            thresholds = receive.getData();
+        }catch (Exception e){
+            log.error("电器火灾获取阈值失败");
+        }
+
+
         for (int i = 1; i <= 16; i++) {
-            ElectricalFireProbeVo vo = createFireProbe(i, jsonObject, electricalFireDetectorAssociationData);
+            ElectricalFireProbeVo vo = createFireProbe(i, jsonObject, electricalFireDetectorAssociationData, thresholds);
             if (ObjectUtil.isEmpty(vo)) continue;
             vos.add(vo);
         }
@@ -222,7 +235,7 @@ public class BIMServiceImpl {
     /**
      * 构建温度探针对象
      */
-    private ElectricalFireProbeVo createFireProbe(Integer number, JSONObject jsonObject, ElectricalFireDetectorAssociationData electricalFireDetectorAssociationData) {
+    private ElectricalFireProbeVo createFireProbe(Integer number, JSONObject jsonObject, ElectricalFireDetectorAssociationData electricalFireDetectorAssociationData, List<ThresholdVo> thresholds) {
         //名称 楼栋楼层# + 电柜号# + 设备号# +探针号接入端点#+电表号
         String name = createFireProbeName(electricalFireDetectorAssociationData);
 
@@ -232,6 +245,8 @@ public class BIMServiceImpl {
         String irStatusKey = Common.FIRE_PROBE_CURRENT_STATUS + number;
         //温度值Key
         String tcKey = Common.FIRE_PROBE_TEMPERATURE_VALUE + number;
+        //温度阈值key
+        String tcthKey = tcKey + "_YZ";
         //剩余电流值Key
         String irKey = Common.FIRE_PROBE_CURRENT_VALUE + number;
 
@@ -240,9 +255,21 @@ public class BIMServiceImpl {
         tcStatus = tcStatus == null ? "0" : tcStatus;
         String irStatus = jsonObject.getStr(irStatusKey);
         irStatus = irStatus == null ? "0" : irStatus;
-
         String tc = jsonObject.getStr(tcKey);
         String ir = jsonObject.getStr(irKey);
+
+        if (null == thresholds ){
+            tcStatus = 40d < Double.valueOf(tc) ? "1" : "0";
+        }else {
+            Map<String, ThresholdVo> map = thresholds.stream().collect(Collectors.toMap(ThresholdVo::getParamModelCode, v -> v));
+            ThresholdVo thresholdVo = map.get(tcthKey);
+            if (null != thresholdVo) {
+                tcStatus = Double.valueOf(thresholdVo.getMaxValue()) < Double.valueOf(tc) ? "1" : "0";
+            }
+        }
+
+
+
         if (Common.FIRE_PROBE_DEFAULT_VALUE.equals(tc) || Common.FIRE_PROBE_DEFAULT_VALUE.equals(ir)) return null;
         if (tc == null || ir == null) return null;
 
